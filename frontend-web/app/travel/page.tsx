@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { api } from '@/lib/api';
 import { TravelSearchResults, User } from '@/types';
 import Link from 'next/link';
 
-export default function TravelPage() {
+function TravelPageContent() {
   const [origin, setOrigin] = useState('');
   const [destination, setDestination] = useState('');
   const [date, setDate] = useState('');
@@ -343,3 +343,14 @@ export default function TravelPage() {
   );
 }
 
+export default function TravelPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl text-gray-600">Loading...</div>
+      </div>
+    }>
+      <TravelPageContent />
+    </Suspense>
+  );
+}
