@@ -1,7 +1,6 @@
 import { supabase } from './supabase';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-
+// No external API URL needed - using Next.js API routes
 async function getAuthHeaders() {
   const { data: { session } } = await supabase.auth.getSession();
   return {
@@ -14,14 +13,14 @@ export const api = {
   // Users
   async getProfile() {
     const headers = await getAuthHeaders();
-    const res = await fetch(`${API_URL}/api/users/profile`, { headers });
+    const res = await fetch(`/api/users/profile`, { headers });
     if (!res.ok) throw new Error('Failed to fetch profile');
     return res.json();
   },
 
   async updateProfile(data: any) {
     const headers = await getAuthHeaders();
-    const res = await fetch(`${API_URL}/api/users/profile`, {
+    const res = await fetch(`/api/users/profile`, {
       method: 'POST',
       headers,
       body: JSON.stringify(data),
@@ -33,8 +32,8 @@ export const api = {
   async searchUsers(university?: string) {
     const headers = await getAuthHeaders();
     const url = university 
-      ? `${API_URL}/api/users/search?university=${encodeURIComponent(university)}`
-      : `${API_URL}/api/users/search`;
+      ? `/api/users/search?university=${encodeURIComponent(university)}`
+      : `/api/users/search`;
     const res = await fetch(url, { headers });
     if (!res.ok) throw new Error('Failed to search users');
     return res.json();
@@ -42,14 +41,14 @@ export const api = {
 
   async getUser(id: string) {
     const headers = await getAuthHeaders();
-    const res = await fetch(`${API_URL}/api/users/${id}`, { headers });
+    const res = await fetch(`/api/users/${id}`, { headers });
     if (!res.ok) throw new Error('Failed to fetch user');
     return res.json();
   },
 
   async getUserByPublicId(publicId: string) {
     const headers = await getAuthHeaders();
-    const res = await fetch(`${API_URL}/api/users/by-public-id/${publicId}`, { headers });
+    const res = await fetch(`/api/users/by-public-id/${publicId}`, { headers });
     if (!res.ok) throw new Error('User not found with that ID');
     return res.json();
   },
@@ -57,14 +56,14 @@ export const api = {
   // Connections
   async getConnections() {
     const headers = await getAuthHeaders();
-    const res = await fetch(`${API_URL}/api/connections`, { headers });
+    const res = await fetch(`/api/connections`, { headers });
     if (!res.ok) throw new Error('Failed to fetch connections');
     return res.json();
   },
 
   async requestConnection(targetUserId: string) {
     const headers = await getAuthHeaders();
-    const res = await fetch(`${API_URL}/api/connections/request`, {
+    const res = await fetch(`/api/connections/request`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ target_user_id: targetUserId }),
@@ -75,7 +74,7 @@ export const api = {
 
   async acceptConnection(connectionId: string) {
     const headers = await getAuthHeaders();
-    const res = await fetch(`${API_URL}/api/connections/${connectionId}/accept`, {
+    const res = await fetch(`/api/connections/${connectionId}/accept`, {
       method: 'PUT',
       headers,
     });
@@ -85,7 +84,7 @@ export const api = {
 
   async deleteConnection(connectionId: string) {
     const headers = await getAuthHeaders();
-    const res = await fetch(`${API_URL}/api/connections/${connectionId}`, {
+    const res = await fetch(`/api/connections/${connectionId}`, {
       method: 'DELETE',
       headers,
     });
@@ -96,21 +95,21 @@ export const api = {
   // Schedule
   async getSchedule() {
     const headers = await getAuthHeaders();
-    const res = await fetch(`${API_URL}/api/schedule`, { headers });
+    const res = await fetch(`/api/schedule`, { headers });
     if (!res.ok) throw new Error('Failed to fetch schedule');
     return res.json();
   },
 
   async getUserSchedule(userId: string) {
     const headers = await getAuthHeaders();
-    const res = await fetch(`${API_URL}/api/schedule/user/${userId}`, { headers });
+    const res = await fetch(`/api/schedule/user/${userId}`, { headers });
     if (!res.ok) throw new Error('Failed to fetch user schedule');
     return res.json();
   },
 
   async createScheduleEntry(data: any) {
     const headers = await getAuthHeaders();
-    const res = await fetch(`${API_URL}/api/schedule`, {
+    const res = await fetch(`/api/schedule`, {
       method: 'POST',
       headers,
       body: JSON.stringify(data),
@@ -121,7 +120,7 @@ export const api = {
 
   async updateScheduleEntry(id: string, data: any) {
     const headers = await getAuthHeaders();
-    const res = await fetch(`${API_URL}/api/schedule/${id}`, {
+    const res = await fetch(`/api/schedule/${id}`, {
       method: 'PUT',
       headers,
       body: JSON.stringify(data),
@@ -132,7 +131,7 @@ export const api = {
 
   async deleteScheduleEntry(id: string) {
     const headers = await getAuthHeaders();
-    const res = await fetch(`${API_URL}/api/schedule/${id}`, {
+    const res = await fetch(`/api/schedule/${id}`, {
       method: 'DELETE',
       headers,
     });
@@ -142,7 +141,7 @@ export const api = {
 
   async getMutualAvailability(partnerId: string) {
     const headers = await getAuthHeaders();
-    const res = await fetch(`${API_URL}/api/schedule/mutual/${partnerId}`, { headers });
+    const res = await fetch(`/api/schedule/mutual/${partnerId}`, { headers });
     if (!res.ok) throw new Error('Failed to fetch mutual availability');
     return res.json();
   },
@@ -150,7 +149,7 @@ export const api = {
   // Travel
   async searchTravel(data: any) {
     const headers = await getAuthHeaders();
-    const res = await fetch(`${API_URL}/api/travel/search`, {
+    const res = await fetch(`/api/travel/search`, {
       method: 'POST',
       headers,
       body: JSON.stringify(data),
@@ -161,14 +160,14 @@ export const api = {
 
   async getTravelPlans() {
     const headers = await getAuthHeaders();
-    const res = await fetch(`${API_URL}/api/travel/plans`, { headers });
+    const res = await fetch(`/api/travel/plans`, { headers });
     if (!res.ok) throw new Error('Failed to fetch travel plans');
     return res.json();
   },
 
   async saveTravelPlan(data: any) {
     const headers = await getAuthHeaders();
-    const res = await fetch(`${API_URL}/api/travel/plans`, {
+    const res = await fetch(`/api/travel/plans`, {
       method: 'POST',
       headers,
       body: JSON.stringify(data),
@@ -179,7 +178,7 @@ export const api = {
 
   async deleteTravelPlan(id: string) {
     const headers = await getAuthHeaders();
-    const res = await fetch(`${API_URL}/api/travel/plans/${id}`, {
+    const res = await fetch(`/api/travel/plans/${id}`, {
       method: 'DELETE',
       headers,
     });
