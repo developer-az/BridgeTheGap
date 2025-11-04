@@ -19,15 +19,16 @@ async function getUserFromToken(request: NextRequest) {
 // PUT /api/connections/:id/accept
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await getUserFromToken(request);
+    const { id } = await params;
     
     const { data, error } = await supabase
       .from('connections')
       .update({ status: 'accepted' })
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single();
 

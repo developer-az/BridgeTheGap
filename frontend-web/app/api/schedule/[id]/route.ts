@@ -19,10 +19,11 @@ async function getUserFromToken(request: NextRequest) {
 // PUT /api/schedule/:id
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getUserFromToken(request);
+    const { id } = await params;
     const body = await request.json();
     const { day_of_week, start_time, end_time, title, type } = body;
 
@@ -35,7 +36,7 @@ export async function PUT(
         title,
         type,
       })
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', user.id)
       .select()
       .single();
@@ -52,15 +53,16 @@ export async function PUT(
 // DELETE /api/schedule/:id
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getUserFromToken(request);
+    const { id } = await params;
     
     const { error } = await supabase
       .from('schedules')
       .delete()
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', user.id);
 
     if (error) throw error;

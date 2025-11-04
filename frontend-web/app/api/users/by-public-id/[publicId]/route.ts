@@ -19,15 +19,16 @@ async function getUserFromToken(request: NextRequest) {
 // GET /api/users/by-public-id/:publicId
 export async function GET(
   request: NextRequest,
-  { params }: { params: { publicId: string } }
+  { params }: { params: Promise<{ publicId: string }> }
 ) {
   try {
     await getUserFromToken(request);
+    const { publicId } = await params;
     
     const { data, error } = await supabase
       .from('users')
       .select('id, email, university_name, major, location_city, location_state, bio, public_id')
-      .eq('public_id', params.publicId.toUpperCase())
+      .eq('public_id', publicId.toUpperCase())
       .single();
 
     if (error) throw error;

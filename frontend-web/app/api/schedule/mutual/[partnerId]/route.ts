@@ -19,12 +19,12 @@ async function getUserFromToken(request: NextRequest) {
 // GET /api/schedule/mutual/:partnerId
 export async function GET(
   request: NextRequest,
-  { params }: { params: { partnerId: string } }
+  { params }: { params: Promise<{ partnerId: string }> }
 ) {
   try {
     const user = await getUserFromToken(request);
     const userId = user.id;
-    const partnerId = params.partnerId;
+    const { partnerId } = await params;
 
     const [{ data: mySchedule }, { data: partnerSchedule }] = await Promise.all([
       supabase.from('schedules').select('*').eq('user_id', userId),

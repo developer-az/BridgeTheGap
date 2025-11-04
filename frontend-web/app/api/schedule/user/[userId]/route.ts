@@ -19,15 +19,16 @@ async function getUserFromToken(request: NextRequest) {
 // GET /api/schedule/user/:userId
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
     await getUserFromToken(request);
+    const { userId } = await params;
     
     const { data, error } = await supabase
       .from('schedules')
       .select('*')
-      .eq('user_id', params.userId)
+      .eq('user_id', userId)
       .order('day_of_week')
       .order('start_time');
 

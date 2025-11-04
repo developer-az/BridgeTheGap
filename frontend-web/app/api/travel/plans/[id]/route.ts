@@ -19,15 +19,16 @@ async function getUserFromToken(request: NextRequest) {
 // DELETE /api/travel/plans/:id
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getUserFromToken(request);
+    const { id } = await params;
     
     const { error } = await supabase
       .from('travel_plans')
       .delete()
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', user.id);
 
     if (error) throw error;
