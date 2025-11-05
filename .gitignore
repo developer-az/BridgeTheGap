@@ -1,0 +1,83 @@
+# Bridge The Gap - Root .gitignore
+# This file protects sensitive data from being committed to git
+
+# ========================================
+# CRITICAL: Files containing API keys
+# ========================================
+# These files contain your actual OpenRouter API key
+API_KEYS_SETUP.md
+OPENROUTER_SETUP_COMPLETE.md
+QUICK_START_OPENROUTER.md
+setup-env.ps1
+
+# ========================================
+# Environment files (NEVER commit these!)
+# ========================================
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env*.local
+**/.env
+**/.env.local
+**/.env*.local
+
+# ========================================
+# Node modules
+# ========================================
+node_modules/
+**/node_modules/
+
+# ========================================
+# Build outputs
+# ========================================
+dist/
+build/
+.next/
+out/
+
+# ========================================
+# Logs
+# ========================================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+logs/
+
+# ========================================
+# OS files
+# ========================================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# ========================================
+# IDE files
+# ========================================
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.sublime-workspace
+
+# ========================================
+# TypeScript
+# ========================================
+*.tsbuildinfo
+
+# ========================================
+# Testing
+# ========================================
+coverage/
+.nyc_output/
+
+# ========================================
+# Misc
+# ========================================
+*.pem
+.vercel
+

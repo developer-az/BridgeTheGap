@@ -45,7 +45,7 @@ Write-Host ""
 Write-Host "🎉 Visit http://localhost:3000 to use the app!" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Press any key to exit this window..."
-$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
 
 
 

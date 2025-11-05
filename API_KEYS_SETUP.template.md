@@ -1,10 +1,47 @@
 # 🔑 API Keys Setup Guide
 
-This guide will help you get **real travel data** (flights, trains, and buses) for Bridge The Gap.
+This guide will help you get **real travel data** (flights, trains, and buses) and **AI features** for Bridge The Gap.
 
 ---
 
-## ✈️ Step 1: Amadeus API (Real Flights) - FREE
+## 🤖 Step 1: OpenRouter API (AI Features)
+
+### What it does:
+- Power AI-driven features in your app
+- Access multiple LLM models (GPT, Claude, etc.)
+- Smart travel recommendations
+- Conversation assistance
+
+### How to get it:
+1. **Sign up for OpenRouter**
+   - Visit: https://openrouter.ai/
+   - Create a free account
+
+2. **Get Your API Key**
+   - Go to: https://openrouter.ai/keys
+   - Click "Create Key"
+   - Copy your API key (starts with `sk-or-v1-`)
+
+3. **Add to your environment**
+   - Run `.\setup-env.ps1` and paste your key when prompted
+   - Or manually add to `.env.local` and `.env`:
+   ```
+   OPENROUTER_API_KEY=sk-or-v1-your_key_here
+   ```
+
+### Free Tier:
+- ✅ Pay-as-you-go pricing
+- ✅ Access to multiple AI models
+- ✅ Very affordable (~$0.002 per request)
+
+### Learn More:
+- Dashboard: https://openrouter.ai/dashboard
+- Documentation: https://openrouter.ai/docs
+- Pricing: https://openrouter.ai/docs#models
+
+---
+
+## ✈️ Step 2: Amadeus API (Real Flights) - FREE
 
 ### What it does:
 - Search real flight prices and schedules
@@ -49,7 +86,7 @@ This guide will help you get **real travel data** (flights, trains, and buses) f
 
 ---
 
-## 🚂 Step 2: Google Maps API (Real Trains & Buses) - FREE
+## 🚂 Step 3: Google Maps API (Real Trains & Buses) - FREE
 
 ### What it does:
 - Search real train and bus schedules
@@ -108,19 +145,22 @@ This guide will help you get **real travel data** (flights, trains, and buses) f
 
 ## 📝 Complete Environment Variable Setup
 
-After getting both APIs, your `frontend-web/.env.local` should look like:
+After getting all APIs, your `frontend-web/.env.local` should look like:
 
 ```bash
-# Supabase (Already configured)
+# Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
-# Amadeus API (for flights)
+# OpenRouter AI
+OPENROUTER_API_KEY=sk-or-v1-your_key_here
+
+# Amadeus API (for flights) - Optional
 AMADEUS_CLIENT_ID=your_amadeus_client_id
 AMADEUS_CLIENT_SECRET=your_amadeus_client_secret
 
-# Google Maps API (for trains/buses)
+# Google Maps API (for trains/buses) - Optional
 GOOGLE_MAPS_API_KEY=your_google_api_key
 ```
 
@@ -135,6 +175,7 @@ When deploying to Vercel, add these environment variables:
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | Supabase Dashboard → Settings → API |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key | Supabase Dashboard → Settings → API |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service key | Supabase Dashboard → Settings → API |
+| `OPENROUTER_API_KEY` | OpenRouter API Key | https://openrouter.ai/keys |
 | `AMADEUS_CLIENT_ID` | Amadeus API Key | Amadeus Dashboard → My Apps |
 | `AMADEUS_CLIENT_SECRET` | Amadeus API Secret | Amadeus Dashboard → My Apps |
 | `GOOGLE_MAPS_API_KEY` | Google Maps API Key | Google Cloud Console → Credentials |
@@ -161,6 +202,7 @@ When deploying to Vercel, add these environment variables:
 - You'll see actual flight prices from airlines
 - Real train and bus schedules from Google Transit
 - Live departure and arrival times
+- AI-powered recommendations
 
 ### How to Test:
 1. Start your app: `npm run dev` (in `frontend-web` directory)
@@ -180,6 +222,11 @@ When deploying to Vercel, add these environment variables:
 
 ### "Using mock train/bus data" warning:
 - **Solution**: Make sure `GOOGLE_MAPS_API_KEY` is in `.env.local`
+- Restart your dev server
+
+### "OpenRouter API key not found":
+- **Solution**: Make sure `OPENROUTER_API_KEY` is in `.env.local`
+- Check for typos in the variable name
 - Restart your dev server
 
 ### Google API returns "ZERO_RESULTS":
@@ -209,14 +256,16 @@ When deploying to Vercel, add these environment variables:
 ## 📊 Cost Estimate
 
 ### For a typical long-distance couple app:
+- **OpenRouter**: ~$0.20/month (100 AI requests)
 - **Amadeus**: FREE (under 2,000 searches/month)
 - **Google Maps**: FREE (under 40,000 requests/month)
-- **Total Cost**: $0/month for most users! 🎉
+- **Total Cost**: ~$0.20/month for most users! 🎉
 
 The free tiers are more than enough for:
 - ~65 travel searches per day
 - Multiple users searching simultaneously
 - Testing and development
+- AI-powered features
 
 ---
 
@@ -224,33 +273,37 @@ The free tiers are more than enough for:
 
 Once you've added the API keys:
 
-1. **Restart your development server**
+1. **Run the setup script**
    ```bash
-   # Stop the server (Ctrl+C)
-   cd frontend-web
-   npm run dev
+   .\setup-env.ps1
    ```
 
-2. **Test the travel search**
+2. **Restart your development server**
+   ```bash
+   .\start-app.ps1
+   ```
+
+3. **Test the travel search**
    - Visit http://localhost:3000/travel
    - Try searching for flights between two cities
    - Check if you see real prices!
 
-3. **Deploy to Vercel**
+4. **Deploy to Vercel**
    ```bash
    git add .
    git commit -m "Add real travel API integration"
    git push origin main
    ```
 
-4. **Add environment variables on Vercel** (see above)
+5. **Add environment variables on Vercel** (see above)
 
-5. **Enjoy real travel data!** ✈️🚂🚌
+6. **Enjoy real travel data and AI features!** ✈️🚂🚌🤖
 
 ---
 
 ## 🤝 Need Help?
 
+- **OpenRouter**: https://openrouter.ai/docs
 - **Amadeus Docs**: https://developers.amadeus.com/self-service
 - **Google Maps Docs**: https://developers.google.com/maps/documentation/directions
 - **Supabase Docs**: https://supabase.com/docs
