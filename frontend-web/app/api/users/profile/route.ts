@@ -88,10 +88,10 @@ export async function GET(request: NextRequest) {
         if (!newId) {
           console.error('❌ Failed to generate public_id for new user');
           // Extract name from email (before @) as default
-          const defaultName = user.email.split('@')[0];
+          const defaultName = user.email ? user.email.split('@')[0] : 'User';
           return NextResponse.json({
             id: user.id,
-            email: user.email,
+            email: user.email || '',
             name: defaultName,
             university_name: null,
             major: null,
@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
         }
         
         // Extract name from email (before @) as default
-        const defaultName = user.email.split('@')[0];
+        const defaultName = user.email ? user.email.split('@')[0] : 'User';
         
         // Create the user profile
         const { data: newUser, error: createError } = await supabase
