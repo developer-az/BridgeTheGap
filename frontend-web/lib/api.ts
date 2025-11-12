@@ -14,7 +14,11 @@ export const api = {
   async getProfile() {
     const headers = await getAuthHeaders();
     const res = await fetch(`/api/users/profile`, { headers });
-    if (!res.ok) throw new Error('Failed to fetch profile');
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      const errorMessage = errorData.error || `Failed to fetch profile (${res.status})`;
+      throw new Error(errorMessage);
+    }
     return res.json();
   },
 
