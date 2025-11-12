@@ -76,3 +76,4 @@ Once you add the key and restart:
 **Quick Fix:** Copy the `SUPABASE_SERVICE_ROLE_KEY` from your `backend/.env` file (if you have it there) and add it to `frontend-web/.env.local`.
 
 
+

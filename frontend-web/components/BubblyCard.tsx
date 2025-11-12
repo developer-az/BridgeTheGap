@@ -40,3 +40,4 @@ export default function BubblyCard({ children, className = '', color = 'white' }
 }
 
 
+

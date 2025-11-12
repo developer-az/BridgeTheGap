@@ -225,3 +225,4 @@ generateDateIdeas(location, interests?)
 **The AI integration is ready - just needs to be connected to your UI!** 🎉
 
 
+

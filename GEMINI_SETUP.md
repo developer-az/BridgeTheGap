@@ -80,3 +80,4 @@ Your app now uses Google Gemini API with:
 - The API key is free forever (no expiration)
 
 
+

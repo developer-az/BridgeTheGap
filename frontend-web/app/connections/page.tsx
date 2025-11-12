@@ -27,8 +27,12 @@ export default function ConnectionsPage() {
     try {
       const profile = await api.getProfile();
       setCurrentUser(profile);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading profile:', error);
+      // Show user-friendly error message
+      if (error.message?.includes('Server configuration error')) {
+        alert('⚠️ Server configuration issue. Please check Vercel environment variables.');
+      }
     }
   };
 

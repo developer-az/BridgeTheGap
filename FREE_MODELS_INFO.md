@@ -107,3 +107,4 @@ To verify you're using free models:
 **Enjoy your free AI-powered schedule parsing!** 🚀
 
 
+
