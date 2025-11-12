@@ -31,14 +31,22 @@ export default function ConnectionsPage() {
       // If profile loaded but no public_id, reload after a short delay
       // (API will auto-generate it)
       if (profile && !profile.public_id) {
+        console.log('🔄 No public_id found, will reload in 2 seconds...');
         setTimeout(async () => {
           try {
+            console.log('🔄 Reloading profile to get public_id...');
             const updatedProfile = await api.getProfile();
+            console.log('📊 Updated profile:', updatedProfile);
+            if (updatedProfile.public_id) {
+              console.log('✅ Got public_id:', updatedProfile.public_id);
+            } else {
+              console.warn('⚠️ Still no public_id after reload');
+            }
             setCurrentUser(updatedProfile);
           } catch (err) {
-            console.error('Error reloading profile:', err);
+            console.error('❌ Error reloading profile:', err);
           }
-        }, 1000);
+        }, 2000); // Increased to 2 seconds
       }
     } catch (error: any) {
       console.error('Error loading profile:', error);

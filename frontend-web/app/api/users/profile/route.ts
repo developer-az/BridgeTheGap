@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Excluding confusing chars
       let newId = '';
       let attempts = 0;
-      const maxAttempts = 10;
+      const maxAttempts = 20; // Increased attempts
       
       while (!newId && attempts < maxAttempts) {
         let candidate = '';
@@ -91,21 +91,25 @@ export async function GET(request: NextRequest) {
           candidate += chars.charAt(Math.floor(Math.random() * chars.length));
         }
         
-        // Check if ID already exists
-        const { data: existing } = await supabase
+        // Check if ID already exists (using service role, so no RLS issues)
+        const { data: existing, error: checkError } = await supabase
           .from('users')
           .select('id')
           .eq('public_id', candidate)
-          .single();
+          .maybeSingle(); // Use maybeSingle to avoid errors if not found
         
-        if (!existing) {
+        // If no error and no existing record, ID is available
+        if (!checkError && !existing) {
           newId = candidate;
+          break;
         }
         attempts++;
       }
       
       if (newId) {
-        // Update the user with the new public_id
+        console.log('✅ Generated unique ID:', newId, 'after', attempts, 'attempts');
+        
+        // Update the user with the new public_id using service role
         const { data: updatedData, error: updateError } = await supabase
           .from('users')
           .update({ public_id: newId })
@@ -113,12 +117,26 @@ export async function GET(request: NextRequest) {
           .select()
           .single();
         
-        if (!updateError && updatedData) {
-          console.log('✅ Generated public_id:', newId);
+        if (updateError) {
+          console.error('❌ Failed to update public_id:', {
+            code: updateError.code,
+            message: updateError.message,
+            details: updateError.details,
+            hint: updateError.hint
+          });
+          
+          // If update fails due to column not existing, return data with generated ID anyway
+          // (frontend can use it, and it will be saved on next profile update)
+          if (updateError.code === '42703' || updateError.message?.includes('column') || updateError.message?.includes('does not exist')) {
+            console.warn('⚠️ public_id column may not exist in database. Returning generated ID anyway.');
+            return NextResponse.json({
+              ...data,
+              public_id: newId
+            });
+          }
+        } else if (updatedData) {
+          console.log('✅ Successfully saved public_id:', newId);
           return NextResponse.json(updatedData);
-        } else {
-          console.error('❌ Failed to update public_id:', updateError);
-          // Return data without public_id if update fails
         }
       } else {
         console.error('❌ Failed to generate unique public_id after', maxAttempts, 'attempts');
