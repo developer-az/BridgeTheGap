@@ -27,6 +27,19 @@ export default function ConnectionsPage() {
     try {
       const profile = await api.getProfile();
       setCurrentUser(profile);
+      
+      // If profile loaded but no public_id, reload after a short delay
+      // (API will auto-generate it)
+      if (profile && !profile.public_id) {
+        setTimeout(async () => {
+          try {
+            const updatedProfile = await api.getProfile();
+            setCurrentUser(updatedProfile);
+          } catch (err) {
+            console.error('Error reloading profile:', err);
+          }
+        }, 1000);
+      }
     } catch (error: any) {
       console.error('Error loading profile:', error);
       // Show user-friendly error message
@@ -134,23 +147,45 @@ export default function ConnectionsPage() {
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Your Public ID */}
-        {currentUser?.public_id && (
+        {currentUser && (
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6 mb-8">
             <h2 className="text-xl font-bold text-gray-900 mb-3">Your Connection ID</h2>
-            <p className="text-gray-700 mb-4">Share this ID with your partner so they can connect with you:</p>
-            <div className="flex items-center gap-3">
-              <div className="flex-1 bg-white border-2 border-blue-300 rounded-lg px-6 py-4">
-                <div className="text-3xl font-bold text-blue-600 tracking-wider text-center">
-                  {currentUser.public_id}
+            {currentUser.public_id ? (
+              <>
+                <p className="text-gray-700 mb-4">Share this ID with your partner so they can connect with you:</p>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 bg-white border-2 border-blue-300 rounded-lg px-6 py-4">
+                    <div className="text-3xl font-bold text-blue-600 tracking-wider text-center">
+                      {currentUser.public_id}
+                    </div>
+                  </div>
+                  <button
+                    onClick={copyPublicId}
+                    className="bg-blue-600 text-white px-6 py-4 rounded-lg font-medium hover:bg-blue-700 whitespace-nowrap"
+                  >
+                    {copiedId ? '✓ Copied!' : 'Copy ID'}
+                  </button>
                 </div>
-              </div>
-              <button
-                onClick={copyPublicId}
-                className="bg-blue-600 text-white px-6 py-4 rounded-lg font-medium hover:bg-blue-700 whitespace-nowrap"
-              >
-                {copiedId ? '✓ Copied!' : 'Copy ID'}
-              </button>
-            </div>
+              </>
+            ) : (
+              <>
+                <p className="text-gray-700 mb-4">Your connection ID is being generated...</p>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 bg-white border-2 border-blue-300 rounded-lg px-6 py-4">
+                    <div className="text-3xl font-bold text-gray-400 tracking-wider text-center">
+                      Loading...
+                    </div>
+                  </div>
+                  <button
+                    disabled
+                    className="bg-gray-400 text-white px-6 py-4 rounded-lg font-medium whitespace-nowrap cursor-not-allowed"
+                  >
+                    Copy ID
+                  </button>
+                </div>
+                <p className="text-sm text-gray-500 mt-2">Please refresh the page in a moment.</p>
+              </>
+            )}
           </div>
         )}
 

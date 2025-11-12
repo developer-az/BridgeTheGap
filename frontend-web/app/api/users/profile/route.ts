@@ -75,6 +75,56 @@ export async function GET(request: NextRequest) {
       throw error;
     }
 
+    // Auto-generate public_id if missing
+    if (!data.public_id) {
+      console.log('🔧 Generating public_id for user:', user.id);
+      
+      // Generate an 8-character ID using the same logic as the database function
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Excluding confusing chars
+      let newId = '';
+      let attempts = 0;
+      const maxAttempts = 10;
+      
+      while (!newId && attempts < maxAttempts) {
+        let candidate = '';
+        for (let i = 0; i < 8; i++) {
+          candidate += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        
+        // Check if ID already exists
+        const { data: existing } = await supabase
+          .from('users')
+          .select('id')
+          .eq('public_id', candidate)
+          .single();
+        
+        if (!existing) {
+          newId = candidate;
+        }
+        attempts++;
+      }
+      
+      if (newId) {
+        // Update the user with the new public_id
+        const { data: updatedData, error: updateError } = await supabase
+          .from('users')
+          .update({ public_id: newId })
+          .eq('id', user.id)
+          .select()
+          .single();
+        
+        if (!updateError && updatedData) {
+          console.log('✅ Generated public_id:', newId);
+          return NextResponse.json(updatedData);
+        } else {
+          console.error('❌ Failed to update public_id:', updateError);
+          // Return data without public_id if update fails
+        }
+      } else {
+        console.error('❌ Failed to generate unique public_id after', maxAttempts, 'attempts');
+      }
+    }
+
     return NextResponse.json(data);
   } catch (error: any) {
     console.error('❌ Error fetching profile:', {
