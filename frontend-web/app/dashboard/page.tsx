@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { api } from '@/lib/api';
 import { User, Connection } from '@/types';
@@ -12,10 +12,11 @@ export default function DashboardPage() {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     loadDashboard();
-  }, []);
+  }, [pathname]); // Reload when pathname changes (e.g., navigating back from profile)
 
   const loadDashboard = async () => {
     try {
@@ -90,12 +91,15 @@ export default function DashboardPage() {
         <div className="bg-gradient-to-br from-white/90 to-blue-50/50 backdrop-blur-sm rounded-3xl border-2 border-blue-200/50 shadow-xl shadow-black/5 p-6 mb-8 hover:shadow-2xl hover:shadow-black/10 transition-all duration-300 hover:-translate-y-1">
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">
-                {user?.university_name || 'University Not Set'}
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                {user?.name || user?.university_name || 'Welcome!'}
               </h2>
+              {user?.university_name && (
+                <p className="text-lg text-gray-700 mb-1">{user.university_name}</p>
+              )}
               <p className="text-gray-600 mb-1">Major: {user?.major || 'Not set'}</p>
               <p className="text-gray-600">
-                Location: {user?.location_city}, {user?.location_state}
+                Location: {user?.location_city || 'Not set'}, {user?.location_state || 'Not set'}
               </p>
               {user?.bio && (
                 <p className="text-gray-700 mt-3">{user.bio}</p>

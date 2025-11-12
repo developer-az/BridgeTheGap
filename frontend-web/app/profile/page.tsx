@@ -59,8 +59,12 @@ export default function ProfilePage() {
     setSaving(true);
 
     try {
-      await api.updateProfile(formData);
+      const updatedProfile = await api.updateProfile(formData);
+      // Update local state immediately
+      setUser(updatedProfile);
       alert('Profile updated successfully!');
+      // Refresh router cache and navigate
+      router.refresh();
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Failed to update profile');
