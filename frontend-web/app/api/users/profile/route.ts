@@ -87,9 +87,12 @@ export async function GET(request: NextRequest) {
         
         if (!newId) {
           console.error('❌ Failed to generate public_id for new user');
+          // Extract name from email (before @) as default
+          const defaultName = user.email.split('@')[0];
           return NextResponse.json({
             id: user.id,
             email: user.email,
+            name: defaultName,
             university_name: null,
             major: null,
             location_city: null,
@@ -124,6 +127,7 @@ export async function GET(request: NextRequest) {
           return NextResponse.json({
             id: user.id,
             email: user.email,
+            name: defaultName,
             university_name: null,
             major: null,
             location_city: null,

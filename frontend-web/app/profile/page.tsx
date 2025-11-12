@@ -35,6 +35,8 @@ export default function ProfilePage() {
       }
 
       const profile = await api.getProfile();
+      console.log('📊 Profile data received:', profile);
+      console.log('👤 Name field:', profile.name);
       setUser(profile);
       setFormData({
         name: profile.name || '',
