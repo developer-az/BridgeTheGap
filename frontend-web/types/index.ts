@@ -1,6 +1,7 @@
 export interface User {
   id: string;
   email: string;
+  name?: string;
   public_id?: string;
   university_name?: string;
   major?: string;

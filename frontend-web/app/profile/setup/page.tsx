@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { api } from '@/lib/api';
 
 export default function ProfileSetupPage() {
+  const [name, setName] = useState('');
   const [universityName, setUniversityName] = useState('');
   const [major, setMajor] = useState('');
   const [locationCity, setLocationCity] = useState('');
@@ -31,6 +32,7 @@ export default function ProfileSetupPage() {
 
     try {
       await api.updateProfile({
+        name,
         university_name: universityName,
         major,
         location_city: locationCity,
@@ -60,6 +62,21 @@ export default function ProfileSetupPage() {
               {error}
             </div>
           )}
+
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+              Your Name *
+            </label>
+            <input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
+              placeholder="e.g., Sarah Johnson"
+            />
+          </div>
 
           <div>
             <label htmlFor="university" className="block text-sm font-medium text-gray-700 mb-2">

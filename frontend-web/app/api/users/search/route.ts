@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from('users')
-      .select('id, email, university_name, major, location_city, location_state, public_id')
+      .select('id, email, name, university_name, major, location_city, location_state, public_id')
       .neq('id', user.id);
 
     if (university) {

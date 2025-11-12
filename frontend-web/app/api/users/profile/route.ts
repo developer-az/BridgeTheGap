@@ -238,7 +238,7 @@ export async function POST(request: NextRequest) {
     
     const user = await getUserFromToken(request);
     const body = await request.json();
-    const { university_name, major, location_city, location_state, bio } = body;
+    const { name, university_name, major, location_city, location_state, bio } = body;
 
     // Check if user exists and has a public_id
     const { data: existingUser } = await supabase
@@ -285,6 +285,7 @@ export async function POST(request: NextRequest) {
     const upsertData: any = {
       id: user.id,
       email: user.email,
+      name,
       university_name,
       major,
       location_city,

@@ -27,7 +27,7 @@ export async function GET(
     
     const { data, error } = await supabase
       .from('users')
-      .select('id, email, university_name, major, location_city, location_state, bio, public_id')
+      .select('id, email, name, university_name, major, location_city, location_state, bio, public_id')
       .eq('public_id', publicId.toUpperCase())
       .single();
 

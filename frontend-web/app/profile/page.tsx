@@ -10,6 +10,7 @@ import Link from 'next/link';
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [formData, setFormData] = useState({
+    name: '',
     university_name: '',
     major: '',
     location_city: '',
@@ -36,6 +37,7 @@ export default function ProfilePage() {
       const profile = await api.getProfile();
       setUser(profile);
       setFormData({
+        name: profile.name || '',
         university_name: profile.university_name || '',
         major: profile.major || '',
         location_city: profile.location_city || '',
@@ -109,6 +111,21 @@ export default function ProfilePage() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
               />
               <p className="text-gray-500 text-sm mt-1">Email cannot be changed</p>
+            </div>
+
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                Your Name
+              </label>
+              <input
+                id="name"
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
+                placeholder="e.g., Sarah Johnson"
+              />
             </div>
 
             <div>

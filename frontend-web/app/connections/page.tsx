@@ -116,7 +116,7 @@ export default function ConnectionsPage() {
     try {
       const user = await api.getUserByPublicId(publicIdInput.trim().toUpperCase());
       await api.requestConnection(user.id);
-      alert(`Connection request sent to ${user.university_name || 'user'}!`);
+      alert(`Connection request sent to ${user.name || user.university_name || 'user'}!`);
       setPublicIdInput('');
       loadConnections();
     } catch (error: any) {
@@ -252,8 +252,18 @@ export default function ConnectionsPage() {
                   className="border border-gray-200 rounded-lg p-4 flex justify-between items-center"
                 >
                   <div>
-                    <h4 className="font-semibold text-gray-900">{user.university_name}</h4>
-                    <p className="text-gray-600 text-sm">{user.major}</p>
+                    <h4 className="font-semibold text-gray-900">
+                      {user.name || user.university_name || 'User'}
+                    </h4>
+                    <p className="text-gray-600 text-sm">
+                      {user.university_name && (
+                        <>
+                          {user.university_name}
+                          {user.major && ' • '}
+                        </>
+                      )}
+                      {user.major}
+                    </p>
                     <p className="text-gray-500 text-sm">
                       {user.location_city}, {user.location_state}
                     </p>
@@ -282,9 +292,17 @@ export default function ConnectionsPage() {
                 >
                   <div>
                     <h4 className="font-semibold text-gray-900">
-                      {connection.partner.university_name}
+                      {connection.partner.name || connection.partner.university_name || 'User'}
                     </h4>
-                    <p className="text-gray-600 text-sm">{connection.partner.major}</p>
+                    <p className="text-gray-600 text-sm">
+                      {connection.partner.university_name && (
+                        <>
+                          {connection.partner.university_name}
+                          {connection.partner.major && ' • '}
+                        </>
+                      )}
+                      {connection.partner.major}
+                    </p>
                     <p className="text-gray-500 text-sm">
                       {connection.partner.location_city}, {connection.partner.location_state}
                     </p>
@@ -323,9 +341,17 @@ export default function ConnectionsPage() {
                 >
                   <div>
                     <h4 className="font-semibold text-gray-900">
-                      {connection.partner.university_name}
+                      {connection.partner.name || connection.partner.university_name || 'User'}
                     </h4>
-                    <p className="text-gray-600 text-sm">{connection.partner.major}</p>
+                    <p className="text-gray-600 text-sm">
+                      {connection.partner.university_name && (
+                        <>
+                          {connection.partner.university_name}
+                          {connection.partner.major && ' • '}
+                        </>
+                      )}
+                      {connection.partner.major}
+                    </p>
                     <p className="text-gray-500 text-sm">
                       {connection.partner.location_city}, {connection.partner.location_state}
                     </p>

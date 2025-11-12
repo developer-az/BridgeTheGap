@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
         
         const { data: partner } = await supabase
           .from('users')
-          .select('id, email, university_name, major, location_city, location_state, bio, public_id')
+          .select('id, email, name, university_name, major, location_city, location_state, bio, public_id')
           .eq('id', partnerId)
           .single();
 
