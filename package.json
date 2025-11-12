@@ -1,0 +1,26 @@
+{
+  "name": "bridge-the-gap",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bridge The Gap - Long Distance Relationship Platform",
+  "scripts": {
+    "build": "cd frontend-web && npm run build",
+    "build:frontend": "cd frontend-web && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "build:all": "npm run build:backend && npm run build:frontend",
+    "dev": "cd frontend-web && npm run dev",
+    "dev:frontend": "cd frontend-web && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "start": "cd frontend-web && npm start",
+    "start:frontend": "cd frontend-web && npm start",
+    "start:backend": "cd backend && npm start",
+    "install": "npm install --prefix frontend-web && npm install --prefix backend",
+    "install:frontend": "cd frontend-web && npm install",
+    "install:backend": "cd backend && npm install",
+    "lint": "cd frontend-web && npm run lint"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
+
