@@ -118,6 +118,17 @@ export const api = {
     return res.json();
   },
 
+  async createScheduleEntriesBatch(entries: any[]) {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`/api/schedule`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(entries),
+    });
+    if (!res.ok) throw new Error('Failed to create schedule entries');
+    return res.json();
+  },
+
   async updateScheduleEntry(id: string, data: any) {
     const headers = await getAuthHeaders();
     const res = await fetch(`/api/schedule/${id}`, {

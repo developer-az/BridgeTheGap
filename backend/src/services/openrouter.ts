@@ -30,10 +30,11 @@ export interface OpenRouterResponse {
 
 /**
  * Call OpenRouter API
+ * Uses FREE models by default to avoid costs
  */
 export async function callOpenRouter(
   messages: OpenRouterMessage[],
-  model: string = 'openai/gpt-3.5-turbo'
+  model: string = 'minimax/minimax-m2:free'
 ): Promise<string> {
   const apiKey = process.env.OPENROUTER_API_KEY;
 

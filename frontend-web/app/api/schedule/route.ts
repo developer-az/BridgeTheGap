@@ -42,24 +42,47 @@ export async function POST(request: NextRequest) {
   try {
     const user = await getUserFromToken(request);
     const body = await request.json();
-    const { day_of_week, start_time, end_time, title, type } = body;
-
-    const { data, error } = await supabase
-      .from('schedules')
-      .insert({
+    
+    // Check if this is a batch insert (array of entries)
+    if (Array.isArray(body)) {
+      const entries = body.map(entry => ({
         user_id: user.id,
-        day_of_week,
-        start_time,
-        end_time,
-        title,
-        type,
-      })
-      .select()
-      .single();
+        day_of_week: entry.day_of_week,
+        start_time: entry.start_time,
+        end_time: entry.end_time,
+        title: entry.title,
+        type: entry.type,
+      }));
 
-    if (error) throw error;
+      const { data, error } = await supabase
+        .from('schedules')
+        .insert(entries)
+        .select();
 
-    return NextResponse.json(data);
+      if (error) throw error;
+
+      return NextResponse.json(data);
+    } else {
+      // Single entry (existing behavior)
+      const { day_of_week, start_time, end_time, title, type } = body;
+
+      const { data, error } = await supabase
+        .from('schedules')
+        .insert({
+          user_id: user.id,
+          day_of_week,
+          start_time,
+          end_time,
+          title,
+          type,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return NextResponse.json(data);
+    }
   } catch (error: any) {
     console.error('Error creating schedule entry:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });

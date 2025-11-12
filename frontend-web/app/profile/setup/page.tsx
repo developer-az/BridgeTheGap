@@ -71,7 +71,7 @@ export default function ProfileSetupPage() {
               value={universityName}
               onChange={(e) => setUniversityName(e.target.value)}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
               placeholder="e.g., Boston University"
             />
           </div>
@@ -86,7 +86,7 @@ export default function ProfileSetupPage() {
               value={major}
               onChange={(e) => setMajor(e.target.value)}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
               placeholder="e.g., Computer Science"
             />
           </div>
@@ -102,7 +102,7 @@ export default function ProfileSetupPage() {
                 value={locationCity}
                 onChange={(e) => setLocationCity(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
                 placeholder="Boston"
               />
             </div>
@@ -116,7 +116,7 @@ export default function ProfileSetupPage() {
                 value={locationState}
                 onChange={(e) => setLocationState(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
                 placeholder="MA"
                 maxLength={2}
               />
@@ -132,7 +132,7 @@ export default function ProfileSetupPage() {
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               rows={4}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
               placeholder="Tell us a bit about yourself..."
             />
           </div>

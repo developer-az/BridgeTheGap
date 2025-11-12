@@ -74,14 +74,16 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
+    <div className="min-h-screen">
+      <header className="bg-white/80 backdrop-blur-md border-b-2 border-white/50 shadow-lg shadow-black/5 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
-            <Link href="/dashboard" className="text-blue-600 hover:text-blue-700">
+            <Link href="/dashboard" className="px-4 py-2 rounded-full bg-white/80 text-blue-600 hover:bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 font-medium">
               ← Back to Dashboard
             </Link>
-            <h1 className="text-2xl font-bold text-gray-900">Edit Profile</h1>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+              ✏️ Edit Profile
+            </h1>
             <div className="w-32"></div>
           </div>
         </div>
@@ -119,7 +121,7 @@ export default function ProfilePage() {
                 value={formData.university_name}
                 onChange={(e) => setFormData({ ...formData, university_name: e.target.value })}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
                 placeholder="e.g., Boston University"
               />
             </div>
@@ -134,7 +136,7 @@ export default function ProfilePage() {
                 value={formData.major}
                 onChange={(e) => setFormData({ ...formData, major: e.target.value })}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
                 placeholder="e.g., Computer Science"
               />
             </div>
@@ -150,7 +152,7 @@ export default function ProfilePage() {
                   value={formData.location_city}
                   onChange={(e) => setFormData({ ...formData, location_city: e.target.value })}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
                   placeholder="Boston"
                 />
               </div>
@@ -164,7 +166,7 @@ export default function ProfilePage() {
                   value={formData.location_state}
                   onChange={(e) => setFormData({ ...formData, location_state: e.target.value })}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
                   placeholder="MA"
                   maxLength={2}
                 />
@@ -180,7 +182,7 @@ export default function ProfilePage() {
                 value={formData.bio}
                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                 rows={4}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
                 placeholder="Tell us a bit about yourself..."
               />
             </div>

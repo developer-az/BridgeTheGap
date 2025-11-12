@@ -50,28 +50,33 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-gray-600">Loading...</div>
+        <div className="text-center">
+          <div className="text-6xl mb-4 animate-bounce">☁️</div>
+          <div className="text-xl text-gray-600 font-semibold">Loading...</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-white/80 backdrop-blur-md border-b-2 border-white/50 shadow-lg shadow-black/5 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">Bridge The Gap</h1>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+              ☁️ Bridge The Gap
+            </h1>
             <div className="flex items-center gap-4">
               <Link
                 href="/profile"
-                className="text-gray-600 hover:text-gray-900"
+                className="px-4 py-2 rounded-full bg-white/80 text-blue-600 hover:bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 font-medium"
               >
                 Profile
               </Link>
               <button
                 onClick={handleLogout}
-                className="text-gray-600 hover:text-gray-900"
+                className="px-4 py-2 rounded-full bg-gradient-to-r from-pink-400 to-pink-500 text-white shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 font-medium"
               >
                 Logout
               </button>
@@ -82,7 +87,7 @@ export default function DashboardPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* User Info Card */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+        <div className="bg-gradient-to-br from-white/90 to-blue-50/50 backdrop-blur-sm rounded-3xl border-2 border-blue-200/50 shadow-xl shadow-black/5 p-6 mb-8 hover:shadow-2xl hover:shadow-black/10 transition-all duration-300 hover:-translate-y-1">
           <div className="flex items-start justify-between">
             <div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">
@@ -98,9 +103,9 @@ export default function DashboardPage() {
             </div>
             <Link
               href="/profile"
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="px-4 py-2 rounded-full bg-gradient-to-r from-blue-400 to-blue-500 text-white shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 font-medium"
             >
-              Edit Profile
+              ✏️ Edit Profile
             </Link>
           </div>
         </div>
@@ -109,41 +114,47 @@ export default function DashboardPage() {
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <Link
             href="/schedule"
-            className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow"
+            className="bg-gradient-to-br from-blue-100/80 to-blue-50/50 backdrop-blur-sm rounded-3xl border-2 border-blue-200/50 shadow-xl shadow-black/5 p-6 hover:shadow-2xl hover:shadow-black/10 transition-all duration-300 hover:-translate-y-2 group"
           >
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Schedule</h3>
+            <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">📅</div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Schedule</h3>
             <p className="text-gray-600">Manage your class schedule and view availability</p>
           </Link>
 
           <Link
             href="/travel"
-            className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow"
+            className="bg-gradient-to-br from-purple-100/80 to-purple-50/50 backdrop-blur-sm rounded-3xl border-2 border-purple-200/50 shadow-xl shadow-black/5 p-6 hover:shadow-2xl hover:shadow-black/10 transition-all duration-300 hover:-translate-y-2 group"
           >
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Travel Plans</h3>
+            <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">✈️</div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Travel Plans</h3>
             <p className="text-gray-600">Search flights, trains, and buses</p>
           </Link>
 
           <Link
             href="/connections"
-            className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow"
+            className="bg-gradient-to-br from-pink-100/80 to-pink-50/50 backdrop-blur-sm rounded-3xl border-2 border-pink-200/50 shadow-xl shadow-black/5 p-6 hover:shadow-2xl hover:shadow-black/10 transition-all duration-300 hover:-translate-y-2 group"
           >
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Find Partners</h3>
+            <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">👥</div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Find Partners</h3>
             <p className="text-gray-600">Connect with other students</p>
           </Link>
         </div>
 
         {/* Connections */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-          <h3 className="text-xl font-bold text-gray-900 mb-6">Your Connections</h3>
+        <div className="bg-gradient-to-br from-white/90 to-pink-50/50 backdrop-blur-sm rounded-3xl border-2 border-pink-200/50 shadow-xl shadow-black/5 p-6 mb-8">
+          <h3 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent mb-6">
+            💕 Your Connections
+          </h3>
           
           {acceptedConnections.length === 0 && pendingConnections.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-600 mb-4">You don't have any connections yet</p>
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">☁️</div>
+              <p className="text-gray-600 mb-6 text-lg">You don't have any connections yet</p>
               <Link
                 href="/connections"
-                className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                className="inline-block px-6 py-3 rounded-full bg-gradient-to-r from-blue-400 to-blue-500 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 font-semibold"
               >
-                Find Partners
+                🌟 Find Partners
               </Link>
             </div>
           ) : (
@@ -151,32 +162,32 @@ export default function DashboardPage() {
               {acceptedConnections.map((connection) => (
                 <div
                   key={connection.id}
-                  className="border border-gray-200 rounded-lg p-4 mb-4 hover:border-blue-300 transition-colors"
+                  className="bg-gradient-to-br from-white/80 to-blue-50/30 backdrop-blur-sm rounded-2xl border-2 border-blue-200/50 p-5 mb-4 hover:border-blue-400 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <h4 className="font-semibold text-gray-900">
+                      <h4 className="font-bold text-lg text-gray-900 mb-1">
                         {connection.partner.university_name}
                       </h4>
-                      <p className="text-gray-600 text-sm">
-                        {connection.partner.major}
+                      <p className="text-gray-600 text-sm mb-1">
+                        📚 {connection.partner.major}
                       </p>
                       <p className="text-gray-500 text-sm">
-                        {connection.partner.location_city}, {connection.partner.location_state}
+                        📍 {connection.partner.location_city}, {connection.partner.location_state}
                       </p>
                     </div>
                     <div className="flex gap-2">
                       <Link
                         href={`/schedule/${connection.partner.id}`}
-                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                        className="px-4 py-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 text-sm font-medium"
                       >
-                        View Schedule
+                        📅 Schedule
                       </Link>
                       <Link
                         href={`/travel?partner=${connection.partner.id}`}
-                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                        className="px-4 py-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 text-sm font-medium"
                       >
-                        Plan Travel
+                        ✈️ Travel
                       </Link>
                     </div>
                   </div>
@@ -185,26 +196,26 @@ export default function DashboardPage() {
 
               {pendingConnections.length > 0 && (
                 <div className="mt-6">
-                  <h4 className="font-semibold text-gray-700 mb-3">Pending Requests</h4>
+                  <h4 className="font-bold text-lg text-gray-700 mb-4">⏳ Pending Requests</h4>
                   {pendingConnections.map((connection) => (
                     <div
                       key={connection.id}
-                      className="border border-yellow-200 bg-yellow-50 rounded-lg p-4 mb-3"
+                      className="bg-gradient-to-br from-yellow-100/80 to-yellow-50/50 backdrop-blur-sm rounded-2xl border-2 border-yellow-300/50 p-5 mb-3 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                     >
                       <div className="flex items-start justify-between">
                         <div>
-                          <h5 className="font-medium text-gray-900">
+                          <h5 className="font-semibold text-gray-900 mb-1">
                             {connection.partner.university_name}
                           </h5>
                           <p className="text-gray-600 text-sm">
-                            {connection.partner.major}
+                            📚 {connection.partner.major}
                           </p>
                         </div>
                         <Link
                           href="/connections"
-                          className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                          className="px-4 py-2 rounded-full bg-yellow-200 text-yellow-700 hover:bg-yellow-300 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 text-sm font-medium"
                         >
-                          Manage
+                          ✨ Manage
                         </Link>
                       </div>
                     </div>
