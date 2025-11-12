@@ -7,6 +7,7 @@ RETURNS TRIGGER AS $$
 DECLARE
   new_public_id TEXT;
   id_exists BOOLEAN;
+  default_name TEXT;
 BEGIN
   -- Generate public_id
   LOOP
@@ -15,11 +16,15 @@ BEGIN
     EXIT WHEN NOT id_exists;
   END LOOP;
 
+  -- Extract name from email (before @) as default
+  default_name := SPLIT_PART(NEW.email, '@', 1);
+
   -- Insert into public.users table
-  INSERT INTO public.users (id, email, public_id, created_at, updated_at)
+  INSERT INTO public.users (id, email, name, public_id, created_at, updated_at)
   VALUES (
     NEW.id,
     NEW.email,
+    default_name,
     new_public_id,
     NOW(),
     NOW()
@@ -45,6 +50,7 @@ DECLARE
   user_record RECORD;
   new_public_id TEXT;
   id_exists BOOLEAN;
+  default_name TEXT;
   created_count INTEGER := 0;
 BEGIN
   -- Loop through auth users who don't have profiles
@@ -61,11 +67,15 @@ BEGIN
       EXIT WHEN NOT id_exists;
     END LOOP;
 
+    -- Extract name from email as default
+    default_name := SPLIT_PART(user_record.email, '@', 1);
+
     -- Create profile
-    INSERT INTO public.users (id, email, public_id, created_at, updated_at)
+    INSERT INTO public.users (id, email, name, public_id, created_at, updated_at)
     VALUES (
       user_record.id,
       user_record.email,
+      default_name,
       new_public_id,
       NOW(),
       NOW()

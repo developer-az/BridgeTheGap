@@ -101,12 +101,16 @@ export async function GET(request: NextRequest) {
           });
         }
         
+        // Extract name from email (before @) as default
+        const defaultName = user.email.split('@')[0];
+        
         // Create the user profile
         const { data: newUser, error: createError } = await supabase
           .from('users')
           .insert({
             id: user.id,
             email: user.email,
+            name: defaultName,
             public_id: newId,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
