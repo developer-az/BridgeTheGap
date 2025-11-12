@@ -171,13 +171,18 @@ export default function DashboardPage() {
                   <div className="flex items-start justify-between">
                     <div>
                       <h4 className="font-bold text-lg text-gray-900 mb-1">
-                        {connection.partner.university_name}
+                        {connection.partner.name || connection.partner.university_name || 'Partner'}
                       </h4>
+                      {connection.partner.university_name && (
+                        <p className="text-gray-700 text-sm mb-1">
+                          🎓 {connection.partner.university_name}
+                        </p>
+                      )}
                       <p className="text-gray-600 text-sm mb-1">
-                        📚 {connection.partner.major}
+                        📚 {connection.partner.major || 'Not set'}
                       </p>
                       <p className="text-gray-500 text-sm">
-                        📍 {connection.partner.location_city}, {connection.partner.location_state}
+                        📍 {connection.partner.location_city || 'Not set'}, {connection.partner.location_state || 'Not set'}
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -209,10 +214,15 @@ export default function DashboardPage() {
                       <div className="flex items-start justify-between">
                         <div>
                           <h5 className="font-semibold text-gray-900 mb-1">
-                            {connection.partner.university_name}
+                            {connection.partner.name || connection.partner.university_name || 'Partner'}
                           </h5>
+                          {connection.partner.university_name && (
+                            <p className="text-gray-700 text-sm mb-1">
+                              🎓 {connection.partner.university_name}
+                            </p>
+                          )}
                           <p className="text-gray-600 text-sm">
-                            📚 {connection.partner.major}
+                            📚 {connection.partner.major || 'Not set'}
                           </p>
                         </div>
                         <Link
