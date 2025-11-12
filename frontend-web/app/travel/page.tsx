@@ -104,11 +104,17 @@ function TravelPageContent() {
       
       setCostEstimates(estimatesMap);
     } catch (error: any) {
-      if (error.message.includes('Rate limit')) {
+      const errorMsg = error.message || 'Failed to estimate costs';
+      
+      if (errorMsg.includes('Rate limit')) {
         const seconds = getTimeUntilNextCall();
-        setRateLimitMessage(`⏱️ ${error.message}`);
+        setRateLimitMessage(`⏱️ ${errorMsg}`);
+      } else if (errorMsg.includes('overloaded') || errorMsg.includes('503')) {
+        setRateLimitMessage('⚠️ The AI service is temporarily busy. Please try again in a few moments.');
+      } else if (errorMsg.includes('quota')) {
+        setRateLimitMessage('⚠️ Daily limit reached. Please try again tomorrow.');
       } else {
-        setRateLimitMessage('Failed to estimate costs. ' + error.message);
+        setRateLimitMessage('❌ ' + errorMsg);
       }
     } finally {
       setEstimatingCosts(false);

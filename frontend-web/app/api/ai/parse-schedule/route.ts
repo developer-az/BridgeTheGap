@@ -42,9 +42,18 @@ export async function POST(request: NextRequest) {
     const errorMessage = error.message || 'Failed to parse schedule';
     
     // Provide more helpful error messages
+    let statusCode = 500;
     let userMessage = errorMessage;
-    if (errorMessage.includes('Rate limit') || errorMessage.includes('429') || errorMessage.includes('rate-limited')) {
+    
+    if (errorMessage.includes('overloaded') || errorMessage.includes('503')) {
+      statusCode = 503;
+      userMessage = 'The AI service is temporarily overloaded. Please try again in a few moments, or use the manual form to add your schedule.';
+    } else if (errorMessage.includes('Rate limit') || errorMessage.includes('429') || errorMessage.includes('rate-limited')) {
+      statusCode = 429;
       userMessage = '⚠️ The free AI model is temporarily rate-limited. Please wait a few minutes and try again, or use the manual form to add your schedule.';
+    } else if (errorMessage.includes('quota')) {
+      statusCode = 429;
+      userMessage = 'Daily quota exceeded. Please wait until tomorrow or use the manual form to add your schedule.';
     } else if (errorMessage.includes('day_of_week')) {
       userMessage = 'The AI had trouble identifying the days. Please try being more explicit (e.g., "Monday", "Tuesday") or use the manual form.';
     } else if (errorMessage.includes('start_time') || errorMessage.includes('end_time')) {
@@ -55,7 +64,7 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json(
       { error: userMessage },
-      { status: 500 }
+      { status: statusCode }
     );
   }
 }

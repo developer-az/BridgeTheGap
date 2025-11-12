@@ -22,10 +22,12 @@ export interface GeminiResponse {
 
 /**
  * Call Google Gemini API (server-side only)
+ * Includes retry logic for 503 errors (service overloaded)
  */
 export async function callGemini(
   messages: Array<{ role: 'user' | 'model' | 'system'; content: string }>,
-  model: string = 'gemini-2.5-flash'
+  model: string = 'gemini-2.5-flash',
+  retries: number = 3
 ): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
 
@@ -33,86 +35,122 @@ export async function callGemini(
     throw new Error('Gemini API key not configured. Please add GEMINI_API_KEY to your .env.local file and restart the server.');
   }
 
-  try {
-    // Convert messages to Gemini format
-    // Gemini doesn't support system messages, so we'll prepend it to the first user message
-    const geminiMessages: GeminiMessage[] = [];
-    let systemPrompt = '';
+  // Convert messages to Gemini format
+  // Gemini doesn't support system messages, so we'll prepend it to the first user message
+  const geminiMessages: GeminiMessage[] = [];
+  let systemPrompt = '';
 
-    for (const msg of messages) {
-      if (msg.role === 'system') {
-        systemPrompt = msg.content;
-      } else if (msg.role === 'user') {
-        const content = systemPrompt ? `${systemPrompt}\n\n${msg.content}` : msg.content;
-        geminiMessages.push({
-          role: 'user',
-          parts: [{ text: content }]
-        });
-        systemPrompt = ''; // Clear after first use
-      } else if (msg.role === 'model') {
-        geminiMessages.push({
-          role: 'model',
-          parts: [{ text: msg.content }]
-        });
-      }
+  for (const msg of messages) {
+    if (msg.role === 'system') {
+      systemPrompt = msg.content;
+    } else if (msg.role === 'user') {
+      const content = systemPrompt ? `${systemPrompt}\n\n${msg.content}` : msg.content;
+      geminiMessages.push({
+        role: 'user',
+        parts: [{ text: content }]
+      });
+      systemPrompt = ''; // Clear after first use
+    } else if (msg.role === 'model') {
+      geminiMessages.push({
+        role: 'model',
+        parts: [{ text: msg.content }]
+      });
     }
-
-    // Use v1beta API for gemini-pro (more stable)
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: geminiMessages,
-          generationConfig: {
-            temperature: 0.1, // Low temperature for structured outputs
-            topP: 0.8,
-            topK: 40,
-          },
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      let errorData;
-      try {
-        errorData = JSON.parse(errorText);
-      } catch {
-        errorData = { error: { message: errorText } };
-      }
-      
-      // Handle rate limiting
-      if (response.status === 429) {
-        throw new Error('Rate limit exceeded. Please wait a few minutes and try again, or use the manual form to add your schedule.');
-      }
-      
-      // Handle quota exceeded
-      if (response.status === 429 || errorText.includes('quota')) {
-        throw new Error('Daily quota exceeded. Please wait until tomorrow or use the manual form to add your schedule.');
-      }
-      
-      // Handle other errors
-      const errorMessage = errorData?.error?.message || errorText;
-      throw new Error(`Gemini API error: ${response.status} - ${errorMessage}`);
-    }
-
-    const data: GeminiResponse = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    
-    if (!text) {
-      throw new Error('No response from Gemini API');
-    }
-
-    return text;
-
-  } catch (error: any) {
-    console.error('Error calling Gemini:', error);
-    throw error;
   }
+
+  // Retry logic for 503 errors
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      // Exponential backoff: wait 1s, 2s, 4s between retries
+      if (attempt > 0) {
+        const delayMs = Math.min(1000 * Math.pow(2, attempt - 1), 10000); // Max 10 seconds
+        console.log(`Retrying Gemini API call (attempt ${attempt + 1}/${retries}) after ${delayMs}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+
+      // Use v1beta API for gemini-pro (more stable)
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: geminiMessages,
+            generationConfig: {
+              temperature: 0.1, // Low temperature for structured outputs
+              topP: 0.8,
+              topK: 40,
+            },
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: { message: errorText } };
+        }
+        
+        const errorMessage = errorData?.error?.message || errorText;
+        
+        // Handle 503 errors with retry
+        if (response.status === 503) {
+          if (attempt < retries - 1) {
+            // Will retry on next iteration
+            lastError = new Error(`Gemini API is temporarily overloaded. Retrying... (attempt ${attempt + 1}/${retries})`);
+            continue;
+          } else {
+            // Last attempt failed
+            throw new Error('Gemini API is temporarily overloaded. Please try again in a few moments.');
+          }
+        }
+        
+        // Handle rate limiting
+        if (response.status === 429) {
+          throw new Error('Rate limit exceeded. Please wait a few minutes and try again, or use the manual form to add your schedule.');
+        }
+        
+        // Handle quota exceeded
+        if (response.status === 429 || errorText.includes('quota')) {
+          throw new Error('Daily quota exceeded. Please wait until tomorrow or use the manual form to add your schedule.');
+        }
+        
+        // Handle other errors (don't retry)
+        throw new Error(`Gemini API error: ${response.status} - ${errorMessage}`);
+      }
+
+      const data: GeminiResponse = await response.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      
+      if (!text) {
+        throw new Error('No response from Gemini API');
+      }
+
+      return text;
+
+    } catch (error: any) {
+      // If it's a 503-related error and we have retries left, continue to retry
+      // (This handles cases where fetch itself throws, though unlikely)
+      if ((error.message?.includes('overloaded') || error.message?.includes('503')) && attempt < retries - 1) {
+        lastError = error;
+        continue;
+      }
+      
+      // For other errors or last attempt, throw immediately
+      console.error(`Error calling Gemini (attempt ${attempt + 1}/${retries}):`, error);
+      throw error;
+    }
+  }
+
+  // If we exhausted all retries
+  throw lastError || new Error('Failed to call Gemini API after multiple attempts');
 }
 
 /**
