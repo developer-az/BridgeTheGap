@@ -56,20 +56,83 @@ export async function GET(request: NextRequest) {
         hint: error.hint
       });
       
-      // If user doesn't exist yet, return a default profile structure
+      // If user doesn't exist yet, create a basic profile automatically
       if (error.code === 'PGRST116') {
-        return NextResponse.json({
-          id: user.id,
-          email: user.email,
-          university_name: null,
-          major: null,
-          location_city: null,
-          location_state: null,
-          bio: null,
-          public_id: null,
-          created_at: null,
-          updated_at: null
-        });
+        console.log('🔧 User profile does not exist, creating one...');
+        
+        // Generate public_id
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let newId = '';
+        let attempts = 0;
+        const maxAttempts = 20;
+        
+        while (!newId && attempts < maxAttempts) {
+          let candidate = '';
+          for (let i = 0; i < 8; i++) {
+            candidate += chars.charAt(Math.floor(Math.random() * chars.length));
+          }
+          
+          const { data: existing } = await supabase
+            .from('users')
+            .select('id')
+            .eq('public_id', candidate)
+            .maybeSingle();
+          
+          if (!existing) {
+            newId = candidate;
+            break;
+          }
+          attempts++;
+        }
+        
+        if (!newId) {
+          console.error('❌ Failed to generate public_id for new user');
+          return NextResponse.json({
+            id: user.id,
+            email: user.email,
+            university_name: null,
+            major: null,
+            location_city: null,
+            location_state: null,
+            bio: null,
+            public_id: null,
+            created_at: null,
+            updated_at: null
+          });
+        }
+        
+        // Create the user profile
+        const { data: newUser, error: createError } = await supabase
+          .from('users')
+          .insert({
+            id: user.id,
+            email: user.email,
+            public_id: newId,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+        
+        if (createError) {
+          console.error('❌ Failed to create user profile:', createError);
+          // Return default structure anyway
+          return NextResponse.json({
+            id: user.id,
+            email: user.email,
+            university_name: null,
+            major: null,
+            location_city: null,
+            location_state: null,
+            bio: null,
+            public_id: newId, // Return generated ID even if insert failed
+            created_at: null,
+            updated_at: null
+          });
+        }
+        
+        console.log('✅ Created user profile with public_id:', newId);
+        return NextResponse.json(newUser);
       }
       
       throw error;
