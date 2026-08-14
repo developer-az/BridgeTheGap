@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { Cormorant_Garamond, Geist, Geist_Mono } from 'next/font/google';
+import localFont from 'next/font/local';
+import { Geist, Geist_Mono } from 'next/font/google';
 import { AuthProvider } from '@/components/AuthProvider';
 import { SiteShell } from '@/components/SiteShell';
 import './globals.css';
@@ -14,10 +15,13 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-const cormorant = Cormorant_Garamond({
+const cormorant = localFont({
+  src: [
+    { path: './fonts/cormorant-garamond-400.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/cormorant-garamond-600.woff2', weight: '600', style: 'normal' },
+  ],
   variable: '--font-cormorant',
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {

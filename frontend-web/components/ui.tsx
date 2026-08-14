@@ -1,6 +1,6 @@
-import { CSSProperties } from 'react';
+import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from 'react';
 
-type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: 'primary' | 'ghost' | 'line';
 };
 
@@ -23,7 +23,7 @@ export function TextLink({
   className = '',
 }: {
   href: string;
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 }) {
   return (
@@ -46,7 +46,7 @@ export function EmptyState({
 }: {
   title: string;
   body: string;
-  action?: React.ReactNode;
+  action?: ReactNode;
 }) {
   return (
     <div className="border border-[var(--line)] bg-[var(--paper)] px-6 py-10">
