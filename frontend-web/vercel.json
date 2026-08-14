@@ -1,0 +1,8 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "next build --webpack",
+  "redirects": [
+    { "source": "/dashboard", "destination": "/home", "permanent": false },
+    { "source": "/connections", "destination": "/connect", "permanent": false }
+  ]
+}
