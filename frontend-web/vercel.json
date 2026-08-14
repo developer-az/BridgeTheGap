@@ -1,6 +1,0 @@
-{
-  "redirects": [
-    { "source": "/dashboard", "destination": "/home", "permanent": false },
-    { "source": "/connections", "destination": "/connect", "permanent": false }
-  ]
-}
