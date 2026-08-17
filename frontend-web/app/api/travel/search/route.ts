@@ -1,70 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { searchFlights } from '@/services/travel/amadeusService';
-import { searchGroundTransport } from '@/services/travel/googleService';
+import { clientIp, rateLimit } from '@/lib/rate-limit';
+import { runTravelSearch } from '@/lib/travel-search';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-async function getUserFromToken(request: NextRequest) {
-  const token = request.headers.get('authorization')?.replace('Bearer ', '');
-  if (!token) throw new Error('No token provided');
-  
-  const { data: { user }, error } = await supabase.auth.getUser(token);
-  if (error || !user) throw new Error('Invalid token');
-  
-  return user;
-}
-
-// POST /api/travel/search
 export async function POST(request: NextRequest) {
   try {
-    await getUserFromToken(request);
+    const ip = clientIp(request);
+    if (!rateLimit(`travel:${ip}`, 20, 10 * 60 * 1000)) {
+      return NextResponse.json(
+        { error: 'Too many searches from this network. Try again in a few minutes.' },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
-    const { origin, destination, date, returnDate, modes } = body;
+    const origin = String(body.origin || '').trim();
+    const destination = String(body.destination || '').trim();
+    const date = String(body.date || '').trim();
+    const returnDate = body.returnDate ? String(body.returnDate).trim() : undefined;
+    const modes: string[] = Array.isArray(body.modes) && body.modes.length
+      ? body.modes
+      : ['flight', 'train', 'bus'];
 
-    const results: any = {
-      flights: [],
-      trains: [],
-      buses: [],
-    };
-
-    // Search flights if requested
-    if (modes.includes('flight')) {
-      try {
-        results.flights = await searchFlights(origin, destination, date, returnDate);
-      } catch (error: any) {
-        console.error('Flight search error:', error.message);
-        results.flights = { error: error.message };
-      }
+    if (!origin || !destination || !date) {
+      return NextResponse.json(
+        { error: 'Origin, destination, and date are required' },
+        { status: 400 }
+      );
     }
 
-    // Search trains if requested
-    if (modes.includes('train')) {
-      try {
-        results.trains = await searchGroundTransport(origin, destination, date, 'train');
-      } catch (error: any) {
-        console.error('Train search error:', error.message);
-        results.trains = { error: error.message };
-      }
-    }
-
-    // Search buses if requested
-    if (modes.includes('bus')) {
-      try {
-        results.buses = await searchGroundTransport(origin, destination, date, 'bus');
-      } catch (error: any) {
-        console.error('Bus search error:', error.message);
-        results.buses = { error: error.message };
-      }
-    }
-
+    const results = await runTravelSearch({ origin, destination, date, returnDate, modes });
     return NextResponse.json(results);
-  } catch (error: any) {
-    console.error('Error searching travel:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    console.error('Travel search error:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to search travel' },
+      { status: 500 }
+    );
   }
 }
-

@@ -1,169 +1,84 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/components/AuthProvider';
+import { Button, Kicker, RoomGate } from '@/components/ui';
 import { api } from '@/lib/api';
 
 export default function ProfileSetupPage() {
-  const [name, setName] = useState('');
-  const [universityName, setUniversityName] = useState('');
-  const [major, setMajor] = useState('');
-  const [locationCity, setLocationCity] = useState('');
-  const [locationState, setLocationState] = useState('');
-  const [bio, setBio] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const router = useRouter();
+  const { session, loading } = useAuth();
+  const [form, setForm] = useState({
+    name: '',
+    university_name: '',
+    major: '',
+    location_city: '',
+    location_state: '',
+    bio: '',
+  });
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    // Check if user is authenticated
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        router.push('/login');
-      }
-    });
-  }, [router]);
+    if (!loading && !session) router.replace('/login?next=/profile/setup');
+  }, [loading, session, router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  if (!loading && !session) {
+    return <RoomGate title="Finish this after you join." body="A name and a city are enough to make travel useful." />;
+  }
+
+  const onSubmit = async (event: FormEvent) => {
+    event.preventDefault();
     setError('');
-    setLoading(true);
-
+    setSaving(true);
     try {
-      await api.updateProfile({
-        name,
-        university_name: universityName,
-        major,
-        location_city: locationCity,
-        location_state: locationState,
-        bio,
-      });
-
-      router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'Failed to update profile');
+      await api.updateProfile(form);
+      router.push('/home');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Could not save');
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-12">
-      <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Complete Your Profile</h1>
-          <p className="text-gray-600">Tell us about yourself to get started</p>
+    <div className="mx-auto max-w-xl px-5 py-12 md:py-16">
+      <Kicker>First things</Kicker>
+      <h1 className="font-display mt-3 text-4xl md:text-5xl">A name and a city</h1>
+      <p className="mt-3 text-[var(--espresso-soft)]">University helps people find you. City is what travel uses.</p>
+      <form onSubmit={onSubmit} className="mt-10 space-y-5">
+        {error && <p className="text-sm text-[var(--oxblood)]">{error}</p>}
+        <div>
+          <label htmlFor="name">Name</label>
+          <input id="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {error}
-            </div>
-          )}
-
+        <div>
+          <label htmlFor="university">University</label>
+          <input id="university" value={form.university_name} onChange={(e) => setForm({ ...form, university_name: e.target.value })} />
+        </div>
+        <div>
+          <label htmlFor="major">Major</label>
+          <input id="major" value={form.major} onChange={(e) => setForm({ ...form, major: e.target.value })} />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-              Your Name *
-            </label>
-            <input
-              id="name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
-              placeholder="e.g., Sarah Johnson"
-            />
+            <label htmlFor="city">City</label>
+            <input id="city" required value={form.location_city} onChange={(e) => setForm({ ...form, location_city: e.target.value })} />
           </div>
-
           <div>
-            <label htmlFor="university" className="block text-sm font-medium text-gray-700 mb-2">
-              University Name *
-            </label>
-            <input
-              id="university"
-              type="text"
-              value={universityName}
-              onChange={(e) => setUniversityName(e.target.value)}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
-              placeholder="e.g., Boston University"
-            />
+            <label htmlFor="state">State</label>
+            <input id="state" required maxLength={2} value={form.location_state} onChange={(e) => setForm({ ...form, location_state: e.target.value })} />
           </div>
-
-          <div>
-            <label htmlFor="major" className="block text-sm font-medium text-gray-700 mb-2">
-              Major *
-            </label>
-            <input
-              id="major"
-              type="text"
-              value={major}
-              onChange={(e) => setMajor(e.target.value)}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
-              placeholder="e.g., Computer Science"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
-                City *
-              </label>
-              <input
-                id="city"
-                type="text"
-                value={locationCity}
-                onChange={(e) => setLocationCity(e.target.value)}
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
-                placeholder="Boston"
-              />
-            </div>
-            <div>
-              <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2">
-                State *
-              </label>
-              <input
-                id="state"
-                type="text"
-                value={locationState}
-                onChange={(e) => setLocationState(e.target.value)}
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
-                placeholder="MA"
-                maxLength={2}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-2">
-              Bio (Optional)
-            </label>
-            <textarea
-              id="bio"
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              rows={4}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
-              placeholder="Tell us a bit about yourself..."
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-          >
-            {loading ? 'Saving...' : 'Continue to Dashboard'}
-          </button>
-        </form>
-      </div>
+        </div>
+        <div>
+          <label htmlFor="bio">Optional line</label>
+          <textarea id="bio" rows={3} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} />
+        </div>
+        <Button type="submit" disabled={saving}>
+          {saving ? 'Saving' : 'Enter the house'}
+        </Button>
+      </form>
     </div>
   );
 }
-

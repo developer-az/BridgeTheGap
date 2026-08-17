@@ -1,20 +1,35 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next';
+import localFont from 'next/font/local';
+import { AuthProvider } from '@/components/AuthProvider';
+import { SiteShell } from '@/components/SiteShell';
+import './globals.css';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const geistSans = localFont({
+  src: './fonts/geist-sans-variable.woff2',
+  variable: '--font-geist-sans',
+  weight: '100 900',
+  display: 'swap',
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const geistMono = localFont({
+  src: './fonts/geist-mono-variable.woff2',
+  variable: '--font-geist-mono',
+  weight: '100 900',
+  display: 'swap',
+});
+
+const cormorant = localFont({
+  src: [
+    { path: './fonts/cormorant-garamond-400.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/cormorant-garamond-600.woff2', weight: '600', style: 'normal' },
+  ],
+  variable: '--font-cormorant',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: "Bridge The Gap",
-  description: "Stay connected with your long-distance partner",
+  title: 'Bridge The Gap',
+  description: 'Plan the visit before you have to rush. Schedules, travel, and the dates that matter — for two people in two places.',
 };
 
 export default function RootLayout({
@@ -25,10 +40,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} antialiased`}
         suppressHydrationWarning
       >
-        {children}
+        <AuthProvider>
+          <SiteShell>{children}</SiteShell>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -1,20 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-async function getUserFromToken(request: NextRequest) {
-  const token = request.headers.get('authorization')?.replace('Bearer ', '');
-  if (!token) throw new Error('No token provided');
-  
-  const { data: { user }, error } = await supabase.auth.getUser(token);
-  if (error || !user) throw new Error('Invalid token');
-  
-  return user;
-}
+import { getUserFromToken } from '@/lib/auth';
+import { getAdminClient } from '@/lib/supabase-admin';
 
 // GET /api/users/search
 export async function GET(request: NextRequest) {
@@ -22,6 +8,7 @@ export async function GET(request: NextRequest) {
     const user = await getUserFromToken(request);
     const searchParams = request.nextUrl.searchParams;
     const university = searchParams.get('university');
+    const supabase = getAdminClient();
 
     let query = supabase
       .from('users')
