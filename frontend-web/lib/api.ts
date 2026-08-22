@@ -179,6 +179,22 @@ export const api = {
     return res.json();
   },
 
+  async autocompletePlaces(query: string) {
+    const res = await fetch(`/api/places/autocomplete?q=${encodeURIComponent(query)}`);
+    if (!res.ok) await readError(res, 'Failed to look up places');
+    return res.json();
+  },
+
+  async resolvePlace(data: { query?: string; placeId?: string }) {
+    const res = await fetch('/api/places/resolve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) await readError(res, 'Failed to resolve place');
+    return res.json();
+  },
+
   async getTravelPlans() {
     const headers = await getAuthHeaders();
     const res = await fetch(`/api/travel/plans`, { headers });

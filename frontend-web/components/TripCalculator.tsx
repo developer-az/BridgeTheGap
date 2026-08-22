@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { TravelOffer } from '@/types';
-import { formatMoney, offerPrice } from '@/lib/travel-rank';
+import { HotelOffer, TravelOffer } from '@/types';
+import { formatMoney, hotelPerNight, offerPrice } from '@/lib/travel-rank';
 import { Button, Kicker } from './ui';
 
 const CALC_KEY = 'btg:tripCalculator';
@@ -27,21 +27,27 @@ function loadCalc(): SavedCalc {
 type Props = {
   selected: TravelOffer | null;
   cheapest: TravelOffer | null;
+  selectedHotel?: HotelOffer | null;
+  cheapestHotel?: HotelOffer | null;
   origin: string;
   destination: string;
   date: string;
   returnDate?: string;
   onSelectCheapest: () => void;
+  onSelectCheapestHotel?: () => void;
 };
 
 export function TripCalculator({
   selected,
   cheapest,
+  selectedHotel,
+  cheapestHotel,
   origin,
   destination,
   date,
   returnDate,
   onSelectCheapest,
+  onSelectCheapestHotel,
 }: Props) {
   const remembered = useMemo(() => loadCalc(), []);
   const [travelers, setTravelers] = useState(remembered.travelers || 1);
@@ -51,18 +57,26 @@ export function TripCalculator({
   const [extras, setExtras] = useState(remembered.extras || 0);
   const [split, setSplit] = useState<'together' | 'me' | 'them'>(remembered.split || 'together');
   const [nightsTouched, setNightsTouched] = useState(false);
+  const [lodgingTouched, setLodgingTouched] = useState(false);
+
+  const activeHotel = selectedHotel || cheapestHotel;
 
   useEffect(() => {
     if (nightsTouched) return;
     if (!returnDate || !date) {
-      setNights(0);
+      setNights(activeHotel?.nights || 0);
       return;
     }
     const start = new Date(`${date}T12:00:00`);
     const end = new Date(`${returnDate}T12:00:00`);
     const diff = Math.round((end.getTime() - start.getTime()) / 86400000);
-    setNights(Math.max(0, diff));
-  }, [date, returnDate, nightsTouched]);
+    setNights(Math.max(activeHotel?.nights || 0, diff));
+  }, [date, returnDate, nightsTouched, activeHotel?.nights]);
+
+  useEffect(() => {
+    if (lodgingTouched || !activeHotel) return;
+    setLodging(Math.round(hotelPerNight(activeHotel)));
+  }, [activeHotel, lodgingTouched]);
 
   useEffect(() => {
     try {
@@ -97,12 +111,17 @@ export function TripCalculator({
         {returnDate ? ` → ${returnDate}` : ''}
       </p>
 
-      {!selected ? (
+      {!selected && !activeHotel ? (
         <p className="mt-6 text-sm text-[var(--stone-dark)]">
-          Choose an offer — or tap the cheapest fare — and the numbers fill in.
+          Choose a fare or hotel — the cheapest picks fill in automatically.
         </p>
       ) : (
         <>
+          {activeHotel && (
+            <p className="mt-4 text-sm text-[var(--espresso-soft)]">
+              Lodging from {activeHotel.name} · {formatMoney(hotelPerNight(activeHotel))}/night
+            </p>
+          )}
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
             <div>
               <label htmlFor="travelers">Travelers</label>
@@ -137,7 +156,10 @@ export function TripCalculator({
                 min={0}
                 value={lodging || ''}
                 placeholder="0"
-                onChange={(e) => setLodging(Math.max(0, Number(e.target.value) || 0))}
+                onChange={(e) => {
+                  setLodgingTouched(true);
+                  setLodging(Math.max(0, Number(e.target.value) || 0));
+                }}
               />
             </div>
             <div>
@@ -226,6 +248,17 @@ export function TripCalculator({
               </p>
               <Button type="button" variant="ghost" className="mt-2 px-0" onClick={onSelectCheapest}>
                 Use cheapest fare
+              </Button>
+            </div>
+          )}
+
+          {cheapestHotel && onSelectCheapestHotel && selectedHotel?.id !== cheapestHotel.id && (
+            <div className="mt-5 border border-[var(--live)]/30 bg-[var(--ivory)] px-4 py-3 text-sm">
+              <p className="text-[var(--live)]">
+                Cheapest stay is {formatMoney(hotelPerNight(cheapestHotel))}/night at {cheapestHotel.name}.
+              </p>
+              <Button type="button" variant="ghost" className="mt-2 px-0" onClick={onSelectCheapestHotel}>
+                Use cheapest hotel
               </Button>
             </div>
           )}

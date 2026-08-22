@@ -2,7 +2,9 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { PlaceInput } from './PlaceInput';
 import { Button } from './ui';
+import { PlaceLocation } from '@/types';
 
 export function TravelSearchForm({
   origin = '',
@@ -18,14 +20,16 @@ export function TravelSearchForm({
   const router = useRouter();
   const [from, setFrom] = useState(origin);
   const [to, setTo] = useState(destination);
+  const [fromPlace, setFromPlace] = useState<PlaceLocation | null>(null);
+  const [toPlace, setToPlace] = useState<PlaceLocation | null>(null);
   const [when, setWhen] = useState(date);
   const [back, setBack] = useState(returnDate);
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
     const params = new URLSearchParams({
-      origin: from,
-      destination: to,
+      origin: fromPlace?.label || from,
+      destination: toPlace?.label || to,
       date: when,
     });
     if (back) params.set('return', back);
@@ -34,14 +38,33 @@ export function TravelSearchForm({
   };
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-3 border border-[var(--line-strong)] bg-[var(--paper)] p-4 md:grid-cols-12 md:items-end">
+    <form
+      onSubmit={onSubmit}
+      className="grid gap-3 border border-[var(--line-strong)] bg-[var(--paper)] p-4 md:grid-cols-12 md:items-end"
+    >
       <div className="md:col-span-3">
-        <label htmlFor="from">From</label>
-        <input id="from" value={from} onChange={(e) => setFrom(e.target.value)} placeholder="Boston" required />
+        <PlaceInput
+          id="from"
+          label="From"
+          value={from}
+          place={fromPlace}
+          onValueChange={setFrom}
+          onPlaceChange={setFromPlace}
+          placeholder="Your campus or city"
+          required
+        />
       </div>
       <div className="md:col-span-3">
-        <label htmlFor="to">To</label>
-        <input id="to" value={to} onChange={(e) => setTo(e.target.value)} placeholder="College Park" required />
+        <PlaceInput
+          id="to"
+          label="To"
+          value={to}
+          place={toPlace}
+          onValueChange={setTo}
+          onPlaceChange={setToPlace}
+          placeholder="Their campus or city"
+          required
+        />
       </div>
       <div className="md:col-span-2">
         <label htmlFor="when">Leave</label>

@@ -1,6 +1,6 @@
-import { FlightOffer, GroundTransport, TravelOffer } from '@/types';
+import { FlightOffer, GroundTransport, HotelOffer, TravelOffer } from '@/types';
 
-export function offerPrice(offer: TravelOffer): number {
+export function offerPrice(offer: TravelOffer | HotelOffer): number {
   const value = Number(offer.price?.total);
   return Number.isFinite(value) ? value : Number.POSITIVE_INFINITY;
 }
@@ -49,6 +49,18 @@ export function rankOffers(
 export function cheapestOffer(offers: TravelOffer[]): TravelOffer | null {
   if (!offers.length) return null;
   return rankOffers(offers, 'cheapest')[0] || null;
+}
+
+export function hotelPerNight(offer: HotelOffer): number {
+  const value = Number(offer.price?.perNight);
+  if (Number.isFinite(value)) return value;
+  const nights = Math.max(1, offer.nights || 1);
+  return Number(offer.price.total) / nights;
+}
+
+export function cheapestHotel(hotels: HotelOffer[]): HotelOffer | null {
+  if (!hotels.length) return null;
+  return [...hotels].sort((a, b) => hotelPerNight(a) - hotelPerNight(b))[0] || null;
 }
 
 export function formatMoney(amount: number, currency = 'USD'): string {

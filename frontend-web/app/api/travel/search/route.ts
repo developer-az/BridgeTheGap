@@ -17,9 +17,11 @@ export async function POST(request: NextRequest) {
     const destination = String(body.destination || '').trim();
     const date = String(body.date || '').trim();
     const returnDate = body.returnDate ? String(body.returnDate).trim() : undefined;
+    const originPlace = body.originPlace || null;
+    const destinationPlace = body.destinationPlace || null;
     const modes: string[] = Array.isArray(body.modes) && body.modes.length
       ? body.modes
-      : ['flight', 'train', 'bus'];
+      : ['flight', 'train', 'bus', 'hotel'];
 
     if (!origin || !destination || !date) {
       return NextResponse.json(
@@ -28,7 +30,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const results = await runTravelSearch({ origin, destination, date, returnDate, modes });
+    const results = await runTravelSearch({
+      origin,
+      destination,
+      originPlace,
+      destinationPlace,
+      date,
+      returnDate,
+      modes,
+    });
     return NextResponse.json(results);
   } catch (error: unknown) {
     console.error('Travel search error:', error);

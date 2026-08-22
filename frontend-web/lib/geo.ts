@@ -6,11 +6,41 @@ export type GeoPoint = {
   label: string;
 };
 
+async function googleGeocode(query: string): Promise<GeoPoint | null> {
+  const key = process.env.GOOGLE_MAPS_API_KEY;
+  if (!key) return null;
+
+  const url = new URL('https://maps.googleapis.com/maps/api/geocode/json');
+  url.searchParams.set('address', query.trim());
+  url.searchParams.set('components', 'country:US');
+  url.searchParams.set('key', key);
+
+  const response = await fetch(url.toString());
+  if (!response.ok) return null;
+  const data = (await response.json()) as {
+    status: string;
+    results?: Array<{
+      formatted_address: string;
+      geometry: { location: { lat: number; lng: number } };
+    }>;
+  };
+
+  if (data.status !== 'OK' || !data.results?.[0]) return null;
+  return {
+    lat: data.results[0].geometry.location.lat,
+    lon: data.results[0].geometry.location.lng,
+    label: data.results[0].formatted_address,
+  };
+}
+
 export async function geocode(query: string): Promise<GeoPoint | null> {
   const trimmed = query.trim();
   if (!trimmed) return null;
 
   return cached(cacheKey(['geo', trimmed]), 24 * 60 * 60 * 1000, async () => {
+    const google = await googleGeocode(trimmed);
+    if (google) return google;
+
     const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(trimmed)}`;
     const response = await fetch(url, {
       headers: {

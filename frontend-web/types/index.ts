@@ -103,6 +103,35 @@ export interface GroundTransport {
 
 export type TravelOffer = FlightOffer | GroundTransport;
 
+export interface PlaceLocation {
+  label: string;
+  query: string;
+  placeId?: string;
+  lat: number;
+  lon: number;
+  city?: string;
+  state?: string;
+  country?: string;
+}
+
+export interface HotelOffer {
+  id: string;
+  name: string;
+  address?: string;
+  rating?: number;
+  nights: number;
+  checkIn: string;
+  checkOut: string;
+  price: {
+    total: string;
+    perNight: string;
+    currency: string;
+  };
+  type: 'hotel';
+  source: TravelSource;
+  bookUrl?: string;
+}
+
 export type CoupleDateKind =
   | 'anniversary'
   | 'birthday'
@@ -130,6 +159,11 @@ export interface TravelSearchResults {
   flights: FlightOffer[] | { error: string };
   trains: GroundTransport[] | { error: string };
   buses: GroundTransport[] | { error: string };
+  hotels: HotelOffer[] | { error: string };
+  resolved?: {
+    origin?: PlaceLocation;
+    destination?: PlaceLocation;
+  };
 }
 
 export type OccasionCollection = 'seasonal' | 'small-nights' | 'long-weekends';
