@@ -2,7 +2,12 @@ import { FlightOffer, GroundTransport, HotelOffer, PlaceLocation, TravelSearchRe
 import { airportCandidates, toAirportCode } from './airports';
 import { cached, cacheKey } from './cache';
 import { generateSimpleGoogleFlightsUrl } from './google-flights';
-import { placeCoordsQuery, placeTravelQuery, resolvePlaceQuery } from './places';
+import {
+  placeCoordsQuery,
+  placeHasCoords,
+  placeTravelQuery,
+  resolvePlaceQuery,
+} from './places';
 import { estimateFlights, estimateGround, googleMapsTransitUrl } from './travel-estimates';
 import { nearestAirportCode, searchHotels } from '@/services/travel/hotelService';
 import { searchFlights } from '@/services/travel/amadeusService';
@@ -50,9 +55,8 @@ function withGroundMeta(
 
 function directionsQuery(place: PlaceLocation | null, fallback: string): string {
   if (!place) return fallback;
-  if (process.env.GOOGLE_MAPS_API_KEY) {
-    return placeCoordsQuery(place);
-  }
+  const coords = placeCoordsQuery(place);
+  if (coords && process.env.GOOGLE_MAPS_API_KEY) return coords;
   return placeTravelQuery(place);
 }
 
@@ -63,12 +67,12 @@ async function airportCodeFor(place: PlaceLocation | null, fallback: string): Pr
 
   if (candidates.length) return candidates[0];
 
-  if (place && process.env.AMADEUS_CLIENT_ID) {
+  if (placeHasCoords(place) && process.env.AMADEUS_CLIENT_ID) {
     const nearest = await nearestAirportCode(place.lat, place.lon);
     if (nearest) return nearest;
   }
 
-  return toAirportCode(fallback);
+  return toAirportCode(fallback) || toAirportCode(place?.city || '');
 }
 
 async function liveFlights(
@@ -123,9 +127,9 @@ export async function runTravelSearch(input: {
   const { origin, destination, date, returnDate, modes } = input;
 
   const resolvedOrigin =
-    input.originPlace || (await resolvePlaceQuery(origin)) || undefined;
+    input.originPlace || (await resolvePlaceQuery(origin));
   const resolvedDestination =
-    input.destinationPlace || (await resolvePlaceQuery(destination)) || undefined;
+    input.destinationPlace || (await resolvePlaceQuery(destination));
 
   const originLabel = resolvedOrigin?.label || origin;
   const destinationLabel = resolvedDestination?.label || destination;
@@ -211,13 +215,27 @@ export async function runTravelSearch(input: {
       }
     }
 
-    if (modes.includes('hotel') && resolvedDestination) {
+    if (modes.includes('hotel') && placeHasCoords(resolvedDestination)) {
       try {
         results.hotels = await searchHotels(
           resolvedDestination,
           date,
           checkoutDate(date, returnDate)
         );
+      } catch {
+        results.hotels = [];
+      }
+    } else if (modes.includes('hotel') && resolvedDestination) {
+      // Text-only destination: still try after one more soft resolve with coords from known list.
+      try {
+        const again = await resolvePlaceQuery(destinationLabel);
+        if (placeHasCoords(again)) {
+          results.hotels = await searchHotels(again, date, checkoutDate(date, returnDate));
+          results.resolved = {
+            ...results.resolved,
+            destination: again,
+          };
+        }
       } catch {
         results.hotels = [];
       }

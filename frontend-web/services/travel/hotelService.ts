@@ -85,12 +85,13 @@ function estimateHotels(
   const budget = Math.round(cityTier * 0.85);
   const mid = cityTier;
   const nice = Math.round(cityTier * 1.35);
+  const locKey = place.lat ?? place.city ?? 'x';
 
   const bookUrl = googleHotelsUrl(place, checkIn, checkOut);
 
   return [
     {
-      id: `estimate-hotel-budget-${place.lat}-${checkIn}`,
+      id: `estimate-hotel-budget-${locKey}-${checkIn}`,
       name: `Budget stay near ${place.city || place.label.split(',')[0]}`,
       address: place.label,
       nights,
@@ -106,7 +107,7 @@ function estimateHotels(
       bookUrl,
     },
     {
-      id: `estimate-hotel-mid-${place.lat}-${checkIn}`,
+      id: `estimate-hotel-mid-${locKey}-${checkIn}`,
       name: `Mid-range hotel · ${place.city || 'destination'}`,
       address: place.label,
       nights,
@@ -122,7 +123,7 @@ function estimateHotels(
       bookUrl,
     },
     {
-      id: `estimate-hotel-nice-${place.lat}-${checkIn}`,
+      id: `estimate-hotel-nice-${locKey}-${checkIn}`,
       name: `Nicer pick · ${place.city || 'destination'}`,
       address: place.label,
       rating: 4.2,
@@ -146,6 +147,10 @@ export async function searchHotels(
   checkIn: string,
   checkOut: string
 ): Promise<HotelOffer[]> {
+  if (typeof destination.lat !== 'number' || typeof destination.lon !== 'number') {
+    return estimateHotels(destination, checkIn, checkOut);
+  }
+
   const nights = nightsBetween(checkIn, checkOut);
   const key = cacheKey([
     'hotels',

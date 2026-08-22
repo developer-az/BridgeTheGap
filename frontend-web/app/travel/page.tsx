@@ -145,17 +145,40 @@ function TravelPageInner() {
     let resolvedDestination = destinationPlace;
 
     try {
-      if (!resolvedOrigin && origin.trim()) {
-        const data = await api.resolvePlace({ query: origin.trim() });
-        resolvedOrigin = data.place;
-        setOriginPlace(data.place);
-        setOrigin(data.place.label);
+      const softResolve = async (query: string, existing: PlaceLocation | null) => {
+        if (existing?.confidence === 'exact' || existing?.confidence === 'approximate') {
+          return existing;
+        }
+        try {
+          const data = await api.resolvePlace({
+            query: query.trim(),
+            placeId: existing?.placeId,
+          });
+          return (data.place as PlaceLocation) || existing;
+        } catch {
+          return (
+            existing || {
+              label: query.trim(),
+              query: query.trim(),
+              confidence: 'text' as const,
+            }
+          );
+        }
+      };
+
+      if (origin.trim()) {
+        resolvedOrigin = await softResolve(origin, resolvedOrigin);
+        if (resolvedOrigin) {
+          setOriginPlace(resolvedOrigin);
+          if (resolvedOrigin.confidence !== 'text') setOrigin(resolvedOrigin.label);
+        }
       }
-      if (!resolvedDestination && destination.trim()) {
-        const data = await api.resolvePlace({ query: destination.trim() });
-        resolvedDestination = data.place;
-        setDestinationPlace(data.place);
-        setDestination(data.place.label);
+      if (destination.trim()) {
+        resolvedDestination = await softResolve(destination, resolvedDestination);
+        if (resolvedDestination) {
+          setDestinationPlace(resolvedDestination);
+          if (resolvedDestination.confidence !== 'text') setDestination(resolvedDestination.label);
+        }
       }
 
       const data = await api.searchTravel({
@@ -340,6 +363,12 @@ function TravelPageInner() {
       {results?.resolved?.origin && results?.resolved?.destination && (
         <p className="mt-4 text-sm text-[var(--espresso-soft)]">
           Searching {results.resolved.origin.label} → {results.resolved.destination.label}
+          {(results.resolved.origin.confidence === 'text' ||
+            results.resolved.destination.confidence === 'text') && (
+            <span className="ml-2 text-[var(--stone-dark)]">
+              · one place is approximate — pick a suggestion for a tighter match
+            </span>
+          )}
         </p>
       )}
 

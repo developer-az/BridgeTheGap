@@ -1,38 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { clientIp, rateLimit } from '@/lib/rate-limit';
-import { placeFromId, resolvePlaceQuery } from '@/lib/places';
+import { resolvePlaceBestEffort } from '@/lib/places';
 
 export async function POST(request: NextRequest) {
+  let placeId = '';
+  let query = '';
+
   try {
     const ip = clientIp(request);
-    if (!rateLimit(`places-resolve:${ip}`, 40, 10 * 60 * 1000)) {
+    if (!rateLimit(`places-resolve:${ip}`, 80, 10 * 60 * 1000)) {
       return NextResponse.json({ error: 'Too many place lookups. Try again shortly.' }, { status: 429 });
     }
 
-    const body = await request.json();
-    const placeId = body.placeId ? String(body.placeId) : '';
-    const query = body.query ? String(body.query).trim() : '';
+    const body = await request.json().catch(() => ({}));
+    placeId = body.placeId ? String(body.placeId) : '';
+    query = body.query ? String(body.query).trim() : '';
 
-    if (placeId) {
-      const place = await placeFromId(placeId);
-      if (!place) {
-        return NextResponse.json({ error: 'Could not resolve that place' }, { status: 404 });
-      }
-      return NextResponse.json({ place });
-    }
-
-    if (!query) {
+    if (!placeId && !query) {
       return NextResponse.json({ error: 'Query or placeId is required' }, { status: 400 });
     }
 
-    const place = await resolvePlaceQuery(query);
-    if (!place) {
-      return NextResponse.json({ error: 'No matching place found' }, { status: 404 });
-    }
-
-    return NextResponse.json({ place });
+    const { place, source } = await resolvePlaceBestEffort({ placeId, query });
+    return NextResponse.json({ place, source });
   } catch (error: unknown) {
     console.error('Places resolve error:', error);
-    return NextResponse.json({ error: 'Failed to resolve place' }, { status: 500 });
+    const fallback = query || placeId || 'Unknown';
+    return NextResponse.json({
+      place: {
+        label: fallback,
+        query: fallback,
+        confidence: 'text',
+      },
+      source: 'fallback',
+      warning: 'Place lookup failed; using what you typed.',
+    });
   }
 }

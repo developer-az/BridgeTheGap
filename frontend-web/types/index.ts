@@ -107,11 +107,12 @@ export interface PlaceLocation {
   label: string;
   query: string;
   placeId?: string;
-  lat: number;
-  lon: number;
+  lat?: number;
+  lon?: number;
   city?: string;
   state?: string;
   country?: string;
+  confidence?: 'exact' | 'approximate' | 'text';
 }
 
 export interface HotelOffer {

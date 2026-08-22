@@ -38,11 +38,13 @@ export function PlaceInput({
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [hint, setHint] = useState('');
 
   useEffect(() => {
     if (value.length < 2) {
       setSuggestions([]);
       setOpen(false);
+      setHint('');
       return;
     }
 
@@ -56,12 +58,22 @@ export function PlaceInput({
       setLoading(true);
       try {
         const data = await api.autocompletePlaces(value);
-        setSuggestions(data.suggestions || []);
-        setOpen((data.suggestions || []).length > 0);
+        const next = data.suggestions || [];
+        setSuggestions(next);
+        setOpen(next.length > 0);
         setActiveIndex(-1);
+        setHint(next.length ? '' : 'No suggestions — search will still use what you typed');
       } catch {
-        setSuggestions([]);
-        setOpen(false);
+        setSuggestions([
+          {
+            placeId: `text:${value}`,
+            label: value,
+            main: value,
+            secondary: 'Use as typed',
+          },
+        ]);
+        setOpen(true);
+        setHint('Place lookup is slow — you can still continue');
       } finally {
         setLoading(false);
       }
@@ -82,15 +94,32 @@ export function PlaceInput({
 
   const pick = async (suggestion: Suggestion) => {
     setOpen(false);
+    setHint('');
     onValueChange(suggestion.label);
     try {
-      const resolved = await api.resolvePlace({ placeId: suggestion.placeId });
+      const resolved = await api.resolvePlace({
+        placeId: suggestion.placeId,
+        query: suggestion.label,
+      });
       onPlaceChange(resolved.place);
       onValueChange(resolved.place.label);
+      if (resolved.place.confidence === 'text') {
+        setHint('Using your text — pick a fuller suggestion if fares look off');
+      }
     } catch {
-      onPlaceChange(null);
+      onPlaceChange({
+        label: suggestion.label,
+        query: suggestion.label,
+        confidence: 'text',
+      });
+      setHint('Could not pin coordinates — travel will still search this name');
     }
   };
+
+  const pinnedBits = place
+    ? [place.city, place.state].filter(Boolean).join(', ') ||
+      (place.confidence === 'exact' ? place.label : '')
+    : '';
 
   return (
     <div ref={wrapRef} className="relative">
@@ -108,9 +137,26 @@ export function PlaceInput({
         onChange={(event) => {
           onValueChange(event.target.value);
           onPlaceChange(null);
+          setHint('');
         }}
         onFocus={() => {
           if (suggestions.length) setOpen(true);
+        }}
+        onBlur={() => {
+          // Soft-resolve typed text if nothing was picked.
+          if (!place && value.trim().length >= 2) {
+            void api
+              .resolvePlace({ query: value.trim() })
+              .then((data) => {
+                if (data.place) {
+                  onPlaceChange(data.place);
+                  if (data.place.label && data.place.confidence !== 'text') {
+                    onValueChange(data.place.label);
+                  }
+                }
+              })
+              .catch(() => {});
+          }
         }}
         onKeyDown={(event) => {
           if (!open || !suggestions.length) return;
@@ -129,13 +175,16 @@ export function PlaceInput({
           if (event.key === 'Escape') setOpen(false);
         }}
       />
-      {place && value === place.label && (place.city || place.state) && (
+      {place && value === place.label && pinnedBits && place.confidence !== 'text' && (
         <p className="mt-1 text-[0.62rem] uppercase tracking-[0.12em] text-[var(--live)]">
-          {[place.city, place.state].filter(Boolean).join(', ')} · pinned
+          {pinnedBits}
+          {place.confidence === 'approximate' ? ' · close match' : ' · pinned'}
         </p>
       )}
-      {loading && !open && value.length >= 2 && !place && (
-        <p className="mt-1 text-[0.62rem] text-[var(--stone-dark)]">Looking up places…</p>
+      {(loading || hint) && (
+        <p className="mt-1 text-[0.62rem] text-[var(--stone-dark)]">
+          {loading ? 'Looking up places…' : hint}
+        </p>
       )}
       {open && suggestions.length > 0 && (
         <ul
@@ -144,7 +193,7 @@ export function PlaceInput({
           className="absolute z-30 mt-1 max-h-64 w-full overflow-y-auto border border-[var(--line-strong)] bg-[var(--ivory)] shadow-[0_16px_40px_rgba(28,25,23,0.08)]"
         >
           {suggestions.map((suggestion, index) => (
-            <li key={suggestion.placeId} role="option" aria-selected={index === activeIndex}>
+            <li key={`${suggestion.placeId}-${index}`} role="option" aria-selected={index === activeIndex}>
               <button
                 type="button"
                 className={`block w-full px-3 py-3 text-left transition-colors ${
