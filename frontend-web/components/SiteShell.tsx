@@ -12,6 +12,7 @@ const publicLinks = [
 const privateLinks = [
   { href: '/home', label: 'Home' },
   { href: '/together', label: 'Together' },
+  { href: '/calendar', label: 'Calendar' },
   { href: '/letters', label: 'Letters' },
   { href: '/connect', label: 'Partner' },
 ];
@@ -96,9 +97,9 @@ export function MobileNav() {
 
   const items = [
     { href: '/home', label: 'Home' },
-    { href: '/together', label: 'Time' },
+    { href: '/calendar', label: 'Dates' },
     { href: '/travel', label: 'Travel' },
-    { href: '/letters', label: 'Letters' },
+    { href: '/together', label: 'Time' },
     { href: '/connect', label: 'Partner' },
   ];
 

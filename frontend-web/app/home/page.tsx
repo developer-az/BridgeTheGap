@@ -170,6 +170,8 @@ export default function HomePage() {
         </section>
       </div>
 
+      <UpcomingDates partnerId={partner?.id} />
+
       <section className="mt-10 grid gap-6 md:grid-cols-2">
         <div className="border border-[var(--line)] p-6">
           <Kicker>Hours you both have</Kicker>
@@ -257,6 +259,56 @@ function ProposeVisit({ partnerId, onCreated }: { partnerId: string; onCreated: 
       </div>
       <Button type="submit">Put it down</Button>
     </form>
+  );
+}
+
+function UpcomingDates({ partnerId }: { partnerId?: string }) {
+  const [items, setItems] = useState<{ id: string; title: string; date: string; kind: string }[]>([]);
+
+  useEffect(() => {
+    const now = new Date();
+    api
+      .getCoupleDates(now.getFullYear(), now.getMonth() + 1)
+      .then((data: { upcoming?: { id: string; title: string; date: string; kind: string }[] }) => {
+        setItems((data.upcoming || []).slice(0, 4));
+      })
+      .catch(() => setItems([]));
+  }, []);
+
+  return (
+    <section className="mt-10 border border-[var(--line)] bg-[var(--paper)] p-6 reveal">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <Kicker>Shared dates</Kicker>
+          <h2 className="font-display mt-2 text-3xl">What is coming</h2>
+        </div>
+        <Link href="/calendar" className="text-[0.72rem] uppercase tracking-[0.16em] hover:text-[var(--oxblood)]">
+          Open calendar
+        </Link>
+      </div>
+      {items.length === 0 ? (
+        <p className="mt-4 max-w-lg text-sm leading-relaxed text-[var(--espresso-soft)]">
+          Anniversaries, visits, and the days you name — they live on one wall. Add the first when you are ready.
+        </p>
+      ) : (
+        <ul className="mt-5 divide-y divide-[var(--line)]">
+          {items.map((item) => (
+            <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+              <div>
+                <p className="text-[0.65rem] uppercase tracking-[0.14em] text-[var(--stone-dark)]">{item.date}</p>
+                <p className="font-display text-xl">{item.title}</p>
+              </div>
+              <Link
+                href={`/travel?date=${item.date}${partnerId ? `&partner=${partnerId}` : ''}`}
+                className="text-[0.68rem] uppercase tracking-[0.14em] text-[var(--espresso-soft)] hover:text-[var(--oxblood)]"
+              >
+                Cheapest trip
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 

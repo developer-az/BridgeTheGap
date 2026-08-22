@@ -101,6 +101,31 @@ export interface GroundTransport {
   bookUrl?: string;
 }
 
+export type TravelOffer = FlightOffer | GroundTransport;
+
+export type CoupleDateKind =
+  | 'anniversary'
+  | 'birthday'
+  | 'first-met'
+  | 'visit'
+  | 'occasion'
+  | 'custom';
+
+export interface CoupleDate {
+  id: string;
+  user1_id: string;
+  user2_id?: string | null;
+  title: string;
+  date: string;
+  end_date?: string | null;
+  kind: CoupleDateKind;
+  notes?: string | null;
+  recurring_yearly?: boolean;
+  created_by?: string | null;
+  created_at?: string;
+  source?: 'custom' | 'visit' | 'invitation' | 'occasion';
+}
+
 export interface TravelSearchResults {
   flights: FlightOffer[] | { error: string };
   trains: GroundTransport[] | { error: string };

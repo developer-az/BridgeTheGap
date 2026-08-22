@@ -6,6 +6,10 @@ import { estimateFlights, estimateGround, googleMapsTransitUrl } from './travel-
 import { searchFlights } from '@/services/travel/amadeusService';
 import { searchGroundTransport } from '@/services/travel/googleService';
 
+function byPrice<T extends { price: { total: string } }>(a: T, b: T) {
+  return Number(a.price.total) - Number(b.price.total);
+}
+
 function withFlightMeta(
   offers: Record<string, unknown>[],
   origin: string,
@@ -15,12 +19,14 @@ function withFlightMeta(
   source: 'live' | 'estimate' = 'live'
 ): FlightOffer[] {
   const bookUrl = generateSimpleGoogleFlightsUrl(origin, destination, date, returnDate);
-  return (offers || []).map((offer) => ({
-    ...(offer as unknown as FlightOffer),
-    type: 'flight' as const,
-    source: (offer.source as FlightOffer['source']) || source,
-    bookUrl: (offer.bookUrl as string) || bookUrl,
-  }));
+  return (offers || [])
+    .map((offer) => ({
+      ...(offer as unknown as FlightOffer),
+      type: 'flight' as const,
+      source: (offer.source as FlightOffer['source']) || source,
+      bookUrl: (offer.bookUrl as string) || bookUrl,
+    }))
+    .sort(byPrice);
 }
 
 function withGroundMeta(
@@ -31,11 +37,13 @@ function withGroundMeta(
   source: 'live' | 'estimate' = 'live'
 ): GroundTransport[] {
   const bookUrl = googleMapsTransitUrl(origin, destination, date);
-  return (offers || []).map((offer) => ({
-    ...(offer as unknown as GroundTransport),
-    source: (offer.source as GroundTransport['source']) || source,
-    bookUrl: (offer.bookUrl as string) || bookUrl,
-  }));
+  return (offers || [])
+    .map((offer) => ({
+      ...(offer as unknown as GroundTransport),
+      source: (offer.source as GroundTransport['source']) || source,
+      bookUrl: (offer.bookUrl as string) || bookUrl,
+    }))
+    .sort(byPrice);
 }
 
 async function liveFlights(origin: string, destination: string, date: string, returnDate?: string) {
@@ -73,27 +81,31 @@ export async function runTravelSearch(input: {
         const live = await liveFlights(origin, destination, date, returnDate);
         results.flights = live.length
           ? live
-          : await estimateFlights(origin, destination, date, returnDate);
+          : (await estimateFlights(origin, destination, date, returnDate)).sort(byPrice);
       } catch {
-        results.flights = await estimateFlights(origin, destination, date, returnDate);
+        results.flights = (await estimateFlights(origin, destination, date, returnDate)).sort(byPrice);
       }
     }
 
     if (modes.includes('train')) {
       try {
         const live = await liveGround(origin, destination, date, 'train');
-        results.trains = live.length ? live : await estimateGround(origin, destination, date, 'train');
+        results.trains = live.length
+          ? live
+          : (await estimateGround(origin, destination, date, 'train')).sort(byPrice);
       } catch {
-        results.trains = await estimateGround(origin, destination, date, 'train');
+        results.trains = (await estimateGround(origin, destination, date, 'train')).sort(byPrice);
       }
     }
 
     if (modes.includes('bus')) {
       try {
         const live = await liveGround(origin, destination, date, 'bus');
-        results.buses = live.length ? live : await estimateGround(origin, destination, date, 'bus');
+        results.buses = live.length
+          ? live
+          : (await estimateGround(origin, destination, date, 'bus')).sort(byPrice);
       } catch {
-        results.buses = await estimateGround(origin, destination, date, 'bus');
+        results.buses = (await estimateGround(origin, destination, date, 'bus')).sort(byPrice);
       }
     }
 

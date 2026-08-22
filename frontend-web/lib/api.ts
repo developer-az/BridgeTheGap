@@ -280,4 +280,32 @@ export const api = {
     if (!res.ok) await readError(res, 'Failed to delete visit');
     return res.json();
   },
+
+  async getCoupleDates(year: number, month: number) {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`/api/dates?year=${year}&month=${month}`, { headers });
+    if (!res.ok) await readError(res, 'Failed to load calendar');
+    return res.json();
+  },
+
+  async createCoupleDate(data: Record<string, unknown>) {
+    const headers = await getAuthHeaders();
+    const res = await fetch('/api/dates', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) await readError(res, 'Failed to save date');
+    return res.json();
+  },
+
+  async deleteCoupleDate(id: string) {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`/api/dates/${id}`, {
+      method: 'DELETE',
+      headers,
+    });
+    if (!res.ok) await readError(res, 'Failed to delete date');
+    return res.json();
+  },
 };

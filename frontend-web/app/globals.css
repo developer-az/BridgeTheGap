@@ -219,3 +219,29 @@ label {
 .btn-primary:disabled {
   opacity: 0.5;
 }
+
+@keyframes house-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reveal {
+  animation: house-rise 0.55s ease both;
+}
+
+.page-main > * {
+  animation: house-rise 0.45s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .page-main > * {
+    animation: none;
+  }
+}
