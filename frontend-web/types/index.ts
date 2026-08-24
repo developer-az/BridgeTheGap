@@ -113,6 +113,8 @@ export interface PlaceLocation {
   state?: string;
   country?: string;
   confidence?: 'exact' | 'approximate' | 'text';
+  kind?: 'university' | 'place';
+  universityName?: string;
 }
 
 export interface HotelOffer {

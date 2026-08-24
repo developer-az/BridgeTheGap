@@ -3,8 +3,10 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
+import { PlaceInput } from '@/components/PlaceInput';
 import { Button, Kicker, RoomGate } from '@/components/ui';
 import { api } from '@/lib/api';
+import { PlaceLocation } from '@/types';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -17,6 +19,7 @@ export default function ProfilePage() {
     location_state: '',
     bio: '',
   });
+  const [schoolPlace, setSchoolPlace] = useState<PlaceLocation | null>(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -30,6 +33,17 @@ export default function ProfilePage() {
       location_state: profile.location_state || '',
       bio: profile.bio || '',
     });
+    if (profile.university_name) {
+      setSchoolPlace({
+        label: profile.university_name,
+        query: [profile.location_city, profile.location_state].filter(Boolean).join(', '),
+        city: profile.location_city,
+        state: profile.location_state,
+        kind: 'university',
+        universityName: profile.university_name,
+        confidence: 'approximate',
+      });
+    }
   }, [profile]);
 
   if (!loading && !session) {
@@ -41,7 +55,12 @@ export default function ProfilePage() {
     setError('');
     setSaving(true);
     try {
-      await api.updateProfile(form);
+      await api.updateProfile({
+        ...form,
+        university_name: schoolPlace?.universityName || form.university_name,
+        location_city: schoolPlace?.city || form.location_city,
+        location_state: schoolPlace?.state || form.location_state,
+      });
       await refreshProfile();
       router.push('/home');
     } catch (err: unknown) {
@@ -65,10 +84,27 @@ export default function ProfilePage() {
           <label htmlFor="name">Name</label>
           <input id="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
         </div>
-        <div>
-          <label htmlFor="university">University</label>
-          <input id="university" value={form.university_name} onChange={(e) => setForm({ ...form, university_name: e.target.value })} />
-        </div>
+        <PlaceInput
+          id="university"
+          label="University"
+          value={form.university_name}
+          place={schoolPlace}
+          prefer="schools"
+          placeholder="Start typing your school"
+          helper="Official U.S. colleges — city updates with the campus"
+          onValueChange={(value) => setForm((current) => ({ ...current, university_name: value }))}
+          onPlaceChange={(place) => {
+            setSchoolPlace(place);
+            if (place?.universityName) {
+              setForm((current) => ({
+                ...current,
+                university_name: place.universityName || place.label,
+                location_city: place.city || current.location_city,
+                location_state: place.state || current.location_state,
+              }));
+            }
+          }}
+        />
         <div>
           <label htmlFor="major">Major</label>
           <input id="major" value={form.major} onChange={(e) => setForm({ ...form, major: e.target.value })} />
@@ -80,7 +116,13 @@ export default function ProfilePage() {
           </div>
           <div>
             <label htmlFor="state">State</label>
-            <input id="state" required maxLength={2} value={form.location_state} onChange={(e) => setForm({ ...form, location_state: e.target.value })} />
+            <input
+              id="state"
+              required
+              maxLength={2}
+              value={form.location_state}
+              onChange={(e) => setForm({ ...form, location_state: e.target.value.toUpperCase() })}
+            />
           </div>
         </div>
         <div>

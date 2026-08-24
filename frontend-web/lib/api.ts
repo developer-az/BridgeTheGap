@@ -179,8 +179,10 @@ export const api = {
     return res.json();
   },
 
-  async autocompletePlaces(query: string) {
-    const res = await fetch(`/api/places/autocomplete?q=${encodeURIComponent(query)}`);
+  async autocompletePlaces(query: string, prefer: 'all' | 'schools' = 'all') {
+    const params = new URLSearchParams({ q: query });
+    if (prefer === 'schools') params.set('prefer', 'schools');
+    const res = await fetch(`/api/places/autocomplete?${params.toString()}`);
     if (!res.ok) await readError(res, 'Failed to look up places');
     return res.json();
   },

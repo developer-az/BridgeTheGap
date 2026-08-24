@@ -220,15 +220,12 @@ label {
   opacity: 0.5;
 }
 
-@keyframes house-rise {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.place-menu {
+  animation: house-rise 0.2s ease both;
+}
+
+.place-field input:focus {
+  box-shadow: inset 0 0 0 1px var(--espresso);
 }
 
 .reveal {

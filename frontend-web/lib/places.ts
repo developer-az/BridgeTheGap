@@ -1,6 +1,12 @@
 import { PlaceLocation } from '@/types';
 import { toAirportCode } from './airports';
 import { cached, cacheKey } from './cache';
+import {
+  findCuratedUniversity,
+  searchUniversities,
+  universityFromId,
+  universityToPlace,
+} from './universities';
 
 const GOOGLE_KEY = process.env.GOOGLE_MAPS_API_KEY;
 
@@ -9,6 +15,7 @@ export type PlaceSuggestion = {
   label: string;
   main: string;
   secondary: string;
+  kind?: 'university' | 'place';
 };
 
 /** Common US city / campus centers when remote geocoders fail. */
@@ -396,45 +403,86 @@ async function googlePlaceDetails(placeId: string): Promise<PlaceLocation | null
   }
 }
 
-export async function autocompletePlaces(input: string): Promise<PlaceSuggestion[]> {
+export async function autocompletePlaces(
+  input: string,
+  options?: { prefer?: 'all' | 'schools' }
+): Promise<PlaceSuggestion[]> {
   const trimmed = input.trim();
   if (!trimmed || trimmed.length < 2) return [];
+  const prefer = options?.prefer || 'all';
 
-  const google = await googleAutocomplete(trimmed);
-  if (google.length) return google;
+  const universities = await searchUniversities(trimmed, prefer === 'schools' ? 10 : 6);
+  const schoolSuggestions: PlaceSuggestion[] = universities.map((school) => ({
+    placeId: school.id,
+    label: `${school.name}, ${school.city}, ${school.state}`,
+    main: school.name,
+    secondary: `${school.city}, ${school.state}`,
+    kind: 'university',
+  }));
 
-  const nominatim = await nominatimSearch(trimmed, 6);
-  if (nominatim.length) {
-    return nominatim.map((place) => ({
-      placeId: place.placeId || `nominatim:${place.label}`,
-      label: place.label,
-      main: place.city || place.label.split(',')[0] || place.label,
-      secondary: [place.state, place.country].filter(Boolean).join(', ') ||
-        place.label.split(',').slice(1).join(',').trim(),
-    }));
+  if (prefer === 'schools') {
+    return schoolSuggestions.length
+      ? schoolSuggestions
+      : [
+          {
+            placeId: `text:${trimmed}`,
+            label: trimmed,
+            main: trimmed,
+            secondary: 'Use as typed',
+            kind: 'place',
+          },
+        ];
   }
 
-  const known = knownPlaceMatch(trimmed);
-  if (known) {
-    return [
-      {
+  const google = await googleAutocomplete(trimmed);
+  const placeSuggestions: PlaceSuggestion[] = google.length
+    ? google.map((item) => ({ ...item, kind: 'place' as const }))
+    : (await nominatimSearch(trimmed, 5)).map((place) => ({
+        placeId: place.placeId || `nominatim:${place.label}`,
+        label: place.label,
+        main: place.city || place.label.split(',')[0] || place.label,
+        secondary:
+          [place.state, place.country].filter(Boolean).join(', ') ||
+          place.label.split(',').slice(1).join(',').trim(),
+        kind: 'place' as const,
+      }));
+
+  if (!placeSuggestions.length) {
+    const known = knownPlaceMatch(trimmed);
+    if (known) {
+      placeSuggestions.push({
         placeId: `known:${normalizeKey(known.label)}`,
         label: known.label,
         main: known.city || known.label,
         secondary: [known.state, known.country].filter(Boolean).join(', '),
+        kind: 'place',
+      });
+    }
+  }
+
+  const merged: PlaceSuggestion[] = [];
+  const seen = new Set<string>();
+  for (const item of [...schoolSuggestions, ...placeSuggestions]) {
+    const key = `${item.kind}|${item.main.toLowerCase()}|${item.secondary.toLowerCase()}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(item);
+    if (merged.length >= 10) break;
+  }
+
+  if (!merged.length) {
+    return [
+      {
+        placeId: `text:${trimmed}`,
+        label: trimmed,
+        main: trimmed,
+        secondary: 'Use as typed',
+        kind: 'place',
       },
     ];
   }
 
-  // Always offer the typed text so the user can continue.
-  return [
-    {
-      placeId: `text:${trimmed}`,
-      label: trimmed,
-      main: trimmed,
-      secondary: 'Use as typed',
-    },
-  ];
+  return merged;
 }
 
 export async function placeFromId(placeId: string, fallbackQuery?: string): Promise<PlaceLocation | null> {
@@ -443,6 +491,16 @@ export async function placeFromId(placeId: string, fallbackQuery?: string): Prom
   }
   if (placeId.startsWith('known:')) {
     return knownPlaceMatch(placeId.slice(6)) || (fallbackQuery ? knownPlaceMatch(fallbackQuery) : null);
+  }
+  if (
+    placeId.startsWith('scorecard:') ||
+    placeId.startsWith('curated-') ||
+    placeId.startsWith('university:')
+  ) {
+    const school = await universityFromId(placeId);
+    if (school) return universityToPlace(school);
+    const curated = findCuratedUniversity(fallbackQuery || placeId);
+    if (curated) return universityToPlace(curated);
   }
   if (placeId.startsWith('nominatim:')) {
     const idOrLabel = placeId.slice('nominatim:'.length);
@@ -469,6 +527,15 @@ export async function resolvePlaceQuery(query: string): Promise<PlaceLocation> {
     return textPlace('');
   }
 
+  // Prefer official schools when the query looks like a campus name.
+  const curatedSchool = findCuratedUniversity(trimmed.replace(/\s*·.*$/, ''));
+  if (curatedSchool) return universityToPlace(curatedSchool);
+
+  if (/\b(university|college|institute|polytechnic)\b/i.test(trimmed) || trimmed.includes('·')) {
+    const schools = await searchUniversities(trimmed.replace(/\s*·.*$/, ''), 1);
+    if (schools[0]) return universityToPlace(schools[0]);
+  }
+
   // IATA airport codes
   if (/^[A-Za-z]{3}$/.test(trimmed)) {
     const code = toAirportCode(trimmed);
@@ -487,7 +554,7 @@ export async function resolvePlaceQuery(query: string): Promise<PlaceLocation> {
   }
 
   const cachedHit = await cachedIfPresent(
-    cacheKey(['resolve-place-v2', trimmed.toLowerCase()]),
+    cacheKey(['resolve-place-v3', trimmed.toLowerCase()]),
     6 * 60 * 60 * 1000,
     async () => {
       const google = await googleGeocodePlace(trimmed);
@@ -498,6 +565,9 @@ export async function resolvePlaceQuery(query: string): Promise<PlaceLocation> {
 
       const known = knownPlaceMatch(trimmed);
       if (known) return known;
+
+      const schools = await searchUniversities(trimmed, 1);
+      if (schools[0]) return universityToPlace(schools[0]);
 
       return null;
     }

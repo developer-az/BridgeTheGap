@@ -28,8 +28,8 @@ export function TravelSearchForm({
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
     const params = new URLSearchParams({
-      origin: fromPlace?.label || from,
-      destination: toPlace?.label || to,
+      origin: fromPlace?.universityName || fromPlace?.label || from,
+      destination: toPlace?.universityName || toPlace?.label || to,
       date: when,
     });
     if (back) params.set('return', back);
@@ -50,7 +50,7 @@ export function TravelSearchForm({
           place={fromPlace}
           onValueChange={setFrom}
           onPlaceChange={setFromPlace}
-          placeholder="Your campus or city"
+          placeholder="Your school or city"
           required
         />
       </div>
@@ -62,7 +62,7 @@ export function TravelSearchForm({
           place={toPlace}
           onValueChange={setTo}
           onPlaceChange={setToPlace}
-          placeholder="Their campus or city"
+          placeholder="Their school or city"
           required
         />
       </div>

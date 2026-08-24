@@ -89,18 +89,21 @@ function TravelPageInner() {
 
   useEffect(() => {
     if (profile?.location_city && !origin && !searchParams.get('origin')) {
-      const label = profile.location_state
-        ? `${profile.location_city}, ${profile.location_state}`
-        : profile.location_city;
+      const label = profile.university_name
+        ? profile.university_name
+        : profile.location_state
+          ? `${profile.location_city}, ${profile.location_state}`
+          : profile.location_city;
       setOrigin(label);
       void api.resolvePlace({ query: label }).then((data) => setOriginPlace(data.place)).catch(() => {});
     }
   }, [profile, origin, searchParams]);
 
   const partnerDestination = (person: User) =>
-    person.location_state
+    person.university_name ||
+    (person.location_state
       ? `${person.location_city}, ${person.location_state}`
-      : person.location_city || '';
+      : person.location_city || '');
 
   useEffect(() => {
     if (!partnerId || !session) return;
@@ -275,13 +278,47 @@ function TravelPageInner() {
       <Kicker>{partner ? `Toward ${partner.name || 'them'}` : 'Travel'}</Kicker>
       <h1 className="font-display mt-3 text-4xl md:text-6xl">The way there</h1>
       <p className="mt-4 max-w-xl text-[var(--espresso-soft)]">
-        Search real places — campus, city, airport — then find the cheapest way there and where to stay.
-        Tickets and rooms open with the provider; this house does not sell them.
+        Type a school or city — official campuses show first. Then find the cheapest way there and where to stay.
       </p>
+
+      {(profile?.university_name || partner?.university_name) && (
+        <div className="mt-6 flex flex-wrap gap-2">
+          {profile?.university_name && (
+            <button
+              type="button"
+              className="border border-[var(--line-strong)] bg-[var(--paper)] px-3 py-2 text-[0.68rem] uppercase tracking-[0.14em] transition-colors hover:border-[var(--espresso)]"
+              onClick={() => {
+                setOrigin(profile.university_name || '');
+                void api
+                  .resolvePlace({ query: profile.university_name || '' })
+                  .then((data) => setOriginPlace(data.place))
+                  .catch(() => setOriginPlace(null));
+              }}
+            >
+              From my school
+            </button>
+          )}
+          {partner?.university_name && (
+            <button
+              type="button"
+              className="border border-[var(--line-strong)] bg-[var(--paper)] px-3 py-2 text-[0.68rem] uppercase tracking-[0.14em] transition-colors hover:border-[var(--espresso)]"
+              onClick={() => {
+                setDestination(partner.university_name || '');
+                void api
+                  .resolvePlace({ query: partner.university_name || '' })
+                  .then((data) => setDestinationPlace(data.place))
+                  .catch(() => setDestinationPlace(null));
+              }}
+            >
+              To {partner.name?.split(' ')[0] || 'their'}’s school
+            </button>
+          )}
+        </div>
+      )}
 
       <form
         onSubmit={runSearch}
-        className="mt-10 grid gap-3 border border-[var(--line-strong)] bg-[var(--paper)] p-5 md:grid-cols-12"
+        className="mt-8 grid gap-3 border border-[var(--line-strong)] bg-[var(--paper)] p-5 md:grid-cols-12"
       >
         <div className="md:col-span-3">
           <PlaceInput
@@ -291,7 +328,8 @@ function TravelPageInner() {
             place={originPlace}
             onValueChange={setOrigin}
             onPlaceChange={setOriginPlace}
-            placeholder="Your campus or city"
+            placeholder="UMD, Boston, campus…"
+            helper="School or city"
             required
           />
         </div>
@@ -299,7 +337,7 @@ function TravelPageInner() {
           <button
             type="button"
             onClick={swapCities}
-            className="mb-1 w-full border border-[var(--line-strong)] py-3 text-[0.68rem] uppercase tracking-[0.14em] hover:border-[var(--espresso)]"
+            className="mb-1 w-full border border-[var(--line-strong)] py-3 text-[0.68rem] uppercase tracking-[0.14em] transition-colors hover:border-[var(--espresso)] hover:bg-[var(--ivory)]"
             aria-label="Swap places"
           >
             Swap
@@ -313,7 +351,8 @@ function TravelPageInner() {
             place={destinationPlace}
             onValueChange={setDestination}
             onPlaceChange={setDestinationPlace}
-            placeholder={partner?.location_city || 'Their campus or city'}
+            placeholder={partner?.university_name || partner?.location_city || 'Their campus…'}
+            helper="School or city"
             required
           />
         </div>
@@ -335,34 +374,52 @@ function TravelPageInner() {
             {loading ? 'Looking' : 'Look'}
           </Button>
         </div>
-        <div className="flex flex-wrap gap-5 md:col-span-12">
-          {(
-            [
-              ['flight', 'Flight'],
-              ['train', 'Rail'],
-              ['bus', 'Coach'],
-              ['hotel', 'Hotel'],
-            ] as const
-          ).map(([mode, label]) => (
-            <label
-              key={mode}
-              className="flex cursor-pointer items-center gap-2 text-[0.72rem] uppercase tracking-[0.14em] text-[var(--espresso-soft)]"
-            >
-              <input
-                type="checkbox"
-                checked={modes.includes(mode)}
-                onChange={() => toggleMode(mode)}
-                className="h-3.5 w-3.5 accent-[var(--espresso)]"
-              />
-              {label}
-            </label>
-          ))}
+        <div className="md:col-span-12">
+          <p className="mb-2 text-[0.65rem] uppercase tracking-[0.14em] text-[var(--stone-dark)]">Include</p>
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                ['flight', 'Flight'],
+                ['train', 'Rail'],
+                ['bus', 'Coach'],
+                ['hotel', 'Hotel'],
+              ] as const
+            ).map(([mode, label]) => {
+              const on = modes.includes(mode);
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => toggleMode(mode)}
+                  aria-pressed={on}
+                  className={`border px-3 py-2 text-[0.68rem] uppercase tracking-[0.14em] transition-colors duration-150 ${
+                    on
+                      ? 'border-[var(--espresso)] bg-[var(--espresso)] text-[var(--ivory)]'
+                      : 'border-[var(--line-strong)] text-[var(--espresso-soft)] hover:border-[var(--espresso)]'
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </form>
 
-      {results?.resolved?.origin && results?.resolved?.destination && (
+      {loading && (
+        <p className="mt-4 text-sm text-[var(--stone-dark)]">Looking up fares and stays…</p>
+      )}
+
+      {results?.resolved?.origin && results?.resolved?.destination && !loading && (
         <p className="mt-4 text-sm text-[var(--espresso-soft)]">
-          Searching {results.resolved.origin.label} → {results.resolved.destination.label}
+          Searching{' '}
+          <span className="text-[var(--espresso)]">
+            {results.resolved.origin.universityName || results.resolved.origin.label}
+          </span>
+          {' → '}
+          <span className="text-[var(--espresso)]">
+            {results.resolved.destination.universityName || results.resolved.destination.label}
+          </span>
           {(results.resolved.origin.confidence === 'text' ||
             results.resolved.destination.confidence === 'text') && (
             <span className="ml-2 text-[var(--stone-dark)]">
