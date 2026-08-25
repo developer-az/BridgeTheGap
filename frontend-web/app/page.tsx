@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { EnvelopeCard } from '@/components/Letter';
 import { TravelSearchForm } from '@/components/TravelSearchForm';
-import { Kicker, TextLink } from '@/components/ui';
+import { Kicker, TextLink, ButtonLink } from '@/components/ui';
 import { occasionsByCollection, upcomingOccasions } from '@/lib/occasions';
 
 export default function HomeLanding() {
@@ -25,7 +25,7 @@ export default function HomeLanding() {
           className="absolute inset-0"
           style={{
             background:
-              'linear-gradient(105deg, rgba(244,239,230,0.94) 0%, rgba(244,239,230,0.82) 42%, rgba(28,25,23,0.35) 100%)',
+              'linear-gradient(105deg, rgba(244,239,230,0.96) 0%, rgba(244,239,230,0.88) 48%, rgba(28,25,23,0.28) 100%)',
           }}
           aria-hidden
         />
@@ -43,18 +43,12 @@ export default function HomeLanding() {
             Two calendars. One ticket. The dates that matter — kept in one house.
           </p>
           <div className="hero-rise mt-8 flex flex-wrap gap-4">
-            <a
-              href="#look"
-              className="inline-flex bg-[var(--espresso)] px-6 py-3 text-[0.72rem] uppercase tracking-[0.18em] text-[var(--ivory)] transition-colors hover:bg-[var(--oxblood)]"
-            >
+            <ButtonLink href="#look" variant="primary">
               Look for a way
-            </a>
-            <Link
-              href="/occasions"
-              className="inline-flex border border-[var(--espresso)] px-6 py-3 text-[0.72rem] uppercase tracking-[0.18em] transition-colors hover:bg-[var(--espresso)] hover:text-[var(--ivory)]"
-            >
+            </ButtonLink>
+            <ButtonLink href="/occasions" variant="line">
               Browse occasions
-            </Link>
+            </ButtonLink>
           </div>
         </div>
       </section>
@@ -76,12 +70,9 @@ export default function HomeLanding() {
             <Kicker>This season</Kicker>
             <h2 className="font-display mt-3 text-4xl md:text-5xl">Letters, not reminders</h2>
           </div>
-          <Link
-            href="/occasions"
-            className="hidden text-[0.72rem] uppercase tracking-[0.16em] hover:text-[var(--oxblood)] md:inline"
-          >
+          <TextLink href="/occasions" className="hidden md:inline">
             The lookbook
-          </Link>
+          </TextLink>
         </div>
         <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {upcoming.map((item) => (

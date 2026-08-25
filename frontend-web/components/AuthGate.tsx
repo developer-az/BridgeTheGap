@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui';
 import { supabase } from '@/lib/supabase';
 
 type AuthGateProps = {
@@ -76,9 +77,9 @@ export function AuthGate({ open, onClose, intent, nextPath }: AuthGateProps) {
             <label htmlFor="gate-password">Password</label>
             <input id="gate-password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={mode === 'join' ? 'new-password' : 'current-password'} />
           </div>
-          <button type="submit" disabled={loading} className="btn-primary w-full">
+          <Button type="submit" disabled={loading} className="w-full">
             {loading ? 'One moment' : mode === 'signin' ? 'Sign in' : 'Create account'}
-          </button>
+          </Button>
         </form>
 
         <div className="mt-5 flex items-center justify-between text-sm text-[var(--stone-dark)]">

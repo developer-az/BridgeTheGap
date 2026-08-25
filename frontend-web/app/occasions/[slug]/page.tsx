@@ -1,10 +1,10 @@
 'use client';
 
 import { FormEvent, useMemo, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { AuthGate } from '@/components/AuthGate';
 import { LetterSheet } from '@/components/Letter';
-import { Button, Kicker } from '@/components/ui';
+import { Button, ButtonLink, Kicker } from '@/components/ui';
 import { useAuth } from '@/components/AuthProvider';
 import { api } from '@/lib/api';
 import { getOccasion, occasionDate, formatOccasionDate, nextWeekendDate } from '@/lib/occasions';
@@ -13,7 +13,6 @@ import { useEffect } from 'react';
 
 export default function OccasionDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const slug = String(params.slug || '');
   const occasion = getOccasion(slug);
   const { session } = useAuth();
@@ -45,9 +44,9 @@ export default function OccasionDetailPage() {
     return (
       <div className="mx-auto max-w-xl px-5 py-24">
         <h1 className="font-display text-4xl">That letter is not in the drawer.</h1>
-        <button type="button" className="mt-6 text-[0.72rem] uppercase tracking-[0.16em]" onClick={() => router.push('/occasions')}>
+        <ButtonLink href="/occasions" variant="ghost" className="mt-6">
           Back to occasions
-        </button>
+        </ButtonLink>
       </div>
     );
   }

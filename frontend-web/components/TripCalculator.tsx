@@ -198,10 +198,8 @@ export function TripCalculator({
                 key={value}
                 type="button"
                 onClick={() => setSplit(value)}
-                className={`border px-3 py-2 text-[0.68rem] uppercase tracking-[0.14em] transition-colors ${
-                  split === value
-                    ? 'border-[var(--espresso)] bg-[var(--espresso)] text-[var(--ivory)]'
-                    : 'border-[var(--line-strong)] text-[var(--espresso-soft)] hover:border-[var(--espresso)]'
+                className={`px-3 py-2 text-[0.68rem] uppercase tracking-[0.14em] transition-colors ${
+                  split === value ? 'chip-on' : 'chip-off'
                 }`}
               >
                 {label}

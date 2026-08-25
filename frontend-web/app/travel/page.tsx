@@ -408,10 +408,8 @@ function TravelPageInner() {
                   type="button"
                   onClick={() => toggleMode(mode)}
                   aria-pressed={on}
-                  className={`border px-3 py-2 text-[0.68rem] uppercase tracking-[0.14em] transition-colors duration-150 ${
-                    on
-                      ? 'border-[var(--espresso)] bg-[var(--espresso)] text-[var(--ivory)]'
-                      : 'border-[var(--line-strong)] text-[var(--espresso-soft)] hover:border-[var(--espresso)]'
+                  className={`px-3 py-2 text-[0.68rem] uppercase tracking-[0.14em] transition-colors duration-150 ${
+                    on ? 'chip-on' : 'chip-off'
                   }`}
                 >
                   {label}

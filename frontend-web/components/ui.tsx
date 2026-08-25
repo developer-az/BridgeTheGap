@@ -1,20 +1,45 @@
 import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from 'react';
+import Link from 'next/link';
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: 'primary' | 'ghost' | 'line';
 };
 
-export function Button({ variant = 'primary', className = '', ...props }: ButtonProps) {
-  const styles: Record<string, string> = {
-    primary:
-      'inline-flex items-center justify-center bg-[var(--espresso)] px-6 py-3 text-[0.72rem] uppercase tracking-[0.18em] text-[var(--ivory)] transition-colors hover:bg-[var(--oxblood)] disabled:opacity-50',
-    ghost:
-      'inline-flex items-center justify-center px-4 py-3 text-[0.72rem] uppercase tracking-[0.18em] text-[var(--espresso)] hover:text-[var(--oxblood)] disabled:opacity-50',
-    line:
-      'inline-flex items-center justify-center border border-[var(--espresso)] px-6 py-3 text-[0.72rem] uppercase tracking-[0.18em] text-[var(--espresso)] hover:bg-[var(--espresso)] hover:text-[var(--ivory)] disabled:opacity-50',
-  };
+const variantClass: Record<NonNullable<ButtonProps['variant']>, string> = {
+  primary: 'btn-primary',
+  ghost: 'btn-ghost',
+  line: 'btn-line',
+};
 
-  return <button className={`${styles[variant]} ${className}`} {...props} />;
+export function Button({ variant = 'primary', className = '', ...props }: ButtonProps) {
+  return <button className={`${variantClass[variant]} ${className}`.trim()} {...props} />;
+}
+
+export function ButtonLink({
+  href,
+  children,
+  variant = 'primary',
+  className = '',
+}: {
+  href: string;
+  children: ReactNode;
+  variant?: 'primary' | 'ghost' | 'line';
+  className?: string;
+}) {
+  const isHash = href.startsWith('#');
+  const classes = `${variantClass[variant]} ${className}`.trim();
+  if (isHash) {
+    return (
+      <a href={href} className={classes}>
+        {children}
+      </a>
+    );
+  }
+  return (
+    <Link href={href} className={classes}>
+      {children}
+    </Link>
+  );
 }
 
 export function TextLink({
@@ -27,9 +52,12 @@ export function TextLink({
   className?: string;
 }) {
   return (
-    <a href={href} className={`text-[0.72rem] uppercase tracking-[0.16em] hover:text-[var(--oxblood)] ${className}`}>
+    <Link
+      href={href}
+      className={`text-[0.72rem] uppercase tracking-[0.16em] text-[var(--espresso)] hover:text-[var(--oxblood)] ${className}`}
+    >
       {children}
-    </a>
+    </Link>
   );
 }
 
@@ -81,13 +109,13 @@ export function RoomGate({
       <Kicker>Private rooms</Kicker>
       <h1 className="font-display mt-4 text-4xl md:text-5xl">{title}</h1>
       <p className="mt-4 text-[var(--espresso-soft)] leading-relaxed">{body}</p>
-      <div className="mt-8 flex justify-center gap-4">
-        <a href="/login" className="inline-flex bg-[var(--espresso)] px-6 py-3 text-[0.72rem] uppercase tracking-[0.18em] text-[var(--ivory)]">
+      <div className="mt-8 flex flex-wrap justify-center gap-4">
+        <ButtonLink href="/login" variant="primary">
           Sign in
-        </a>
-        <a href="/signup" className="inline-flex border border-[var(--espresso)] px-6 py-3 text-[0.72rem] uppercase tracking-[0.18em]">
+        </ButtonLink>
+        <ButtonLink href="/signup" variant="line">
           Join
-        </a>
+        </ButtonLink>
       </div>
     </section>
   );
