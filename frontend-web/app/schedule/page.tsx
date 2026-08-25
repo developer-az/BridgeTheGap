@@ -3,7 +3,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
-import { AuthGate } from '@/components/AuthGate';
 import { WeekGrid } from '@/components/WeekGrid';
 import { Button, Kicker, RoomGate } from '@/components/ui';
 import { api } from '@/lib/api';
@@ -30,7 +29,6 @@ export default function SchedulePage() {
   const [parsed, setParsed] = useState<typeof emptyForm[]>([]);
   const [parseError, setParseError] = useState('');
   const [parsing, setParsing] = useState(false);
-  const [gate, setGate] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -49,13 +47,10 @@ export default function SchedulePage() {
 
   if (!session) {
     return (
-      <>
-        <RoomGate
-          title="Your week stays private."
-          body="Add classes when you want the overlap to mean something. Until then, travel and occasions are still open."
-        />
-        <AuthGate open={gate} onClose={() => setGate(false)} intent="Editing the week needs an account." nextPath="/schedule" />
-      </>
+      <RoomGate
+        title="Your week stays private."
+        body="Add classes when you want the overlap to mean something. Until then, travel and occasions are still open."
+      />
     );
   }
 

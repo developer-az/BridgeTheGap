@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { EnvelopeCard } from '@/components/Letter';
 import { TravelSearchForm } from '@/components/TravelSearchForm';
-import { Kicker } from '@/components/ui';
+import { Kicker, TextLink } from '@/components/ui';
 import { occasionsByCollection, upcomingOccasions } from '@/lib/occasions';
 
 export default function HomeLanding() {
@@ -12,30 +12,74 @@ export default function HomeLanding() {
 
   return (
     <div>
-      <section className="mx-auto max-w-6xl px-5 pb-8 pt-16 md:px-8 md:pt-24">
-        <Kicker>For two cities</Kicker>
-        <h1 className="font-display mt-5 max-w-4xl text-5xl leading-[0.95] md:text-7xl">
-          Plan the visit before you have to rush.
-        </h1>
-        <p className="mt-6 max-w-xl text-base leading-relaxed text-[var(--espresso-soft)] md:text-lg">
-          Calendars, a ticket, and the dates that actually matter — kept in one house. Browse freely. Save when you are ready.
-        </p>
+      <section className="relative isolate min-h-[100svh] overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=2400&q=80')",
+          }}
+          aria-hidden
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(105deg, rgba(244,239,230,0.94) 0%, rgba(244,239,230,0.82) 42%, rgba(28,25,23,0.35) 100%)',
+          }}
+          aria-hidden
+        />
+        <div className="relative mx-auto flex min-h-[100svh] max-w-6xl flex-col justify-end px-5 pb-16 pt-28 md:px-8 md:pb-24">
+          <p className="hero-fade font-display text-5xl tracking-tight text-[var(--espresso)] md:text-7xl lg:text-8xl">
+            Bridge
+            <span className="ml-3 text-[0.28em] uppercase tracking-[0.28em] text-[var(--espresso-soft)]">
+              the Gap
+            </span>
+          </p>
+          <h1 className="hero-rise font-display mt-6 max-w-2xl text-3xl leading-tight text-[var(--espresso)] md:text-4xl">
+            Plan the visit before you have to rush.
+          </h1>
+          <p className="hero-rise mt-4 max-w-md text-base leading-relaxed text-[var(--espresso-soft)] md:text-lg">
+            Two calendars. One ticket. The dates that matter — kept in one house.
+          </p>
+          <div className="hero-rise mt-8 flex flex-wrap gap-4">
+            <a
+              href="#look"
+              className="inline-flex bg-[var(--espresso)] px-6 py-3 text-[0.72rem] uppercase tracking-[0.18em] text-[var(--ivory)] transition-colors hover:bg-[var(--oxblood)]"
+            >
+              Look for a way
+            </a>
+            <Link
+              href="/occasions"
+              className="inline-flex border border-[var(--espresso)] px-6 py-3 text-[0.72rem] uppercase tracking-[0.18em] transition-colors hover:bg-[var(--espresso)] hover:text-[var(--ivory)]"
+            >
+              Browse occasions
+            </Link>
+          </div>
+        </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-5 md:px-8">
-        <TravelSearchForm />
+      <section id="look" className="mx-auto max-w-6xl px-5 py-14 md:px-8 md:py-16">
+        <Kicker>Travel</Kicker>
+        <h2 className="font-display mt-3 text-3xl md:text-4xl">From here to there</h2>
+        <div className="mt-6">
+          <TravelSearchForm />
+        </div>
         <p className="mt-3 text-[0.78rem] text-[var(--stone-dark)]">
           No account to look. A fare is marked live or estimate — we never pretend to sell the ticket.
         </p>
       </section>
 
-      <section className="mx-auto max-w-6xl px-5 py-20 md:px-8">
+      <section className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
         <div className="flex items-end justify-between gap-6">
           <div>
             <Kicker>This season</Kicker>
             <h2 className="font-display mt-3 text-4xl md:text-5xl">Letters, not reminders</h2>
           </div>
-          <Link href="/occasions" className="hidden text-[0.72rem] uppercase tracking-[0.16em] hover:text-[var(--oxblood)] md:inline">
+          <Link
+            href="/occasions"
+            className="hidden text-[0.72rem] uppercase tracking-[0.16em] hover:text-[var(--oxblood)] md:inline"
+          >
             The lookbook
           </Link>
         </div>
@@ -80,13 +124,19 @@ export default function HomeLanding() {
         <ul className="mt-10 divide-y divide-[var(--line)] border-y border-[var(--line)]">
           {small.map((item) => (
             <li key={item.slug}>
-              <Link href={`/occasions/${item.slug}`} className="flex items-baseline justify-between gap-6 py-5 hover:text-[var(--oxblood)]">
+              <Link
+                href={`/occasions/${item.slug}`}
+                className="flex items-baseline justify-between gap-6 py-5 hover:text-[var(--oxblood)]"
+              >
                 <span className="font-display text-2xl md:text-3xl">{item.title}</span>
                 <span className="max-w-md text-right text-sm text-[var(--stone-dark)]">{item.prompt}</span>
               </Link>
             </li>
           ))}
         </ul>
+        <div className="mt-8">
+          <TextLink href="/occasions">All occasions</TextLink>
+        </div>
       </section>
     </div>
   );

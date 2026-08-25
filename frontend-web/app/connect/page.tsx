@@ -2,7 +2,6 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import { useAuth } from '@/components/AuthProvider';
-import { AuthGate } from '@/components/AuthGate';
 import { Button, EmptyState, Kicker, RoomGate } from '@/components/ui';
 import { api } from '@/lib/api';
 import { Connection, User } from '@/types';
@@ -16,7 +15,6 @@ export default function ConnectPage() {
   const [results, setResults] = useState<User[]>([]);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
-  const [gate, setGate] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
 
@@ -39,13 +37,10 @@ export default function ConnectPage() {
 
   if (!session) {
     return (
-      <>
-        <RoomGate
-          title="A partner is a code, not a feed."
-          body="Give them eight letters. They enter yours. That is the introduction — no browsing strangers required."
-        />
-        <AuthGate open={gate} onClose={() => setGate(false)} intent="Linking needs both of you signed in." />
-      </>
+      <RoomGate
+        title="A partner is a code, not a feed."
+        body="Give them eight letters. They enter yours. That is the introduction — no browsing strangers required."
+      />
     );
   }
 

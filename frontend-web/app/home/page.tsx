@@ -8,7 +8,7 @@ import { Button, EmptyState, Kicker, RoomGate } from '@/components/ui';
 import { api } from '@/lib/api';
 import { clearPendingPlan, readPendingPlan } from '@/lib/pending';
 import { formatWindow } from '@/lib/availability';
-import { nextDatedOccasion } from '@/lib/occasions';
+import { nextEnvelopeOccasion } from '@/lib/occasions';
 import { Connection, FreeWindow, Invitation, Visit } from '@/types';
 
 export default function HomePage() {
@@ -30,7 +30,7 @@ export default function HomePage() {
   const openLetter = invites.find((i) => i.status === 'sent' && i.to_user_id !== undefined) 
     || invites.find((i) => i.status === 'sent');
   const incomingLetter = invites.find((i) => i.status === 'sent' && i.from_user_id !== profile?.id);
-  const season = nextDatedOccasion();
+  const season = nextEnvelopeOccasion();
 
   useEffect(() => {
     if (!session || loading) return;

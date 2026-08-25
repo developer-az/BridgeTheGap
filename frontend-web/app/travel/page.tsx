@@ -10,7 +10,7 @@ import { TripCalculator } from '@/components/TripCalculator';
 import { Button, EmptyState, Kicker } from '@/components/ui';
 import { useAuth } from '@/components/AuthProvider';
 import { api } from '@/lib/api';
-import { stashPendingPlan } from '@/lib/pending';
+import { clearPendingPlan, readPendingPlan, stashPendingPlan } from '@/lib/pending';
 import {
   cheapestHotel,
   cheapestOffer,
@@ -79,12 +79,28 @@ function TravelPageInner() {
   const [partner, setPartner] = useState<User | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedHotelId, setSelectedHotelId] = useState<string | null>(null);
+  const [notice, setNotice] = useState('');
 
   const partnerId = searchParams.get('partner');
 
   useEffect(() => {
     if (!session) return;
     api.getTravelPlans().then(setSaved).catch(() => setSaved([]));
+
+    // Guest "Keep" stashes a plan; flush it once they sign in (even if they stay on /travel).
+    const pending = readPendingPlan();
+    if (!pending) return;
+    void api
+      .saveTravelPlan(pending)
+      .then((savedPlan) => {
+        clearPendingPlan();
+        setSaved((current) => [savedPlan, ...current.filter((item) => item.id !== savedPlan.id)]);
+        setNotice('The trip you looked at is kept.');
+        setGateOpen(false);
+      })
+      .catch(() => {
+        /* leave pending for /home */
+      });
   }, [session]);
 
   useEffect(() => {
@@ -428,6 +444,8 @@ function TravelPageInner() {
           )}
         </p>
       )}
+
+      {notice && <p className="mt-4 text-sm text-[var(--live)]">{notice}</p>}
 
       {error && <p className="mt-4 text-sm text-[var(--oxblood)]">{error}</p>}
 

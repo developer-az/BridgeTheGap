@@ -246,6 +246,29 @@ export function nextDatedOccasion(from = new Date()): (Occasion & { date: Date; 
   return next ?? null;
 }
 
+/** Home envelope: next occasion roughly 4–6 weeks out (within its lead window). */
+export function nextEnvelopeOccasion(
+  from = new Date()
+): (Occasion & { date: Date; days: number }) | null {
+  const dated = OCCASIONS.map((occasion) => {
+    const date = occasionDate(occasion, from);
+    const days = daysUntil(occasion, from);
+    return date && days !== null ? { ...occasion, date, days } : null;
+  }).filter((item): item is Occasion & { date: Date; days: number } => Boolean(item));
+
+  const inWindow = dated
+    .filter((item) => item.days >= 28 && item.days <= Math.max(42, item.leadDays))
+    .sort((a, b) => a.days - b.days);
+
+  if (inWindow[0]) return inWindow[0];
+
+  const live = dated
+    .filter((item) => isOccasionLive(item, from) && item.days >= 14)
+    .sort((a, b) => a.days - b.days);
+
+  return live[0] ?? null;
+}
+
 export function formatOccasionDate(date: Date): string {
   return date.toLocaleDateString('en-US', {
     month: 'long',

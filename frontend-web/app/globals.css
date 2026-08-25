@@ -220,6 +220,26 @@ label {
   opacity: 0.5;
 }
 
+@keyframes house-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes house-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .place-menu {
   animation: house-rise 0.2s ease both;
 }
@@ -232,12 +252,24 @@ label {
   animation: house-rise 0.55s ease both;
 }
 
+.hero-fade {
+  animation: house-fade 0.9s ease both;
+}
+
+.hero-rise {
+  animation: house-rise 0.7s ease both;
+  animation-delay: 0.08s;
+}
+
 .page-main > * {
   animation: house-rise 0.45s ease both;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .reveal,
+  .hero-fade,
+  .hero-rise,
+  .place-menu,
   .page-main > * {
     animation: none;
   }
