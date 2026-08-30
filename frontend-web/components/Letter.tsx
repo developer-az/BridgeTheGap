@@ -8,14 +8,22 @@ export function EnvelopeCard({
   date,
   days,
   onOpen,
+  glow,
+  className = '',
 }: {
   occasion: Occasion;
   date?: Date | null;
   days?: number | null;
   onOpen?: () => void;
+  glow?: boolean;
+  className?: string;
 }) {
   return (
-    <button type="button" onClick={onOpen} className="envelope w-full text-left">
+    <button
+      type="button"
+      onClick={onOpen}
+      className={`envelope w-full text-left ${glow ? 'envelope-glow' : ''} ${className}`.trim()}
+    >
       <span className="envelope-flap" />
       <span className="envelope-seal" />
       <div className="absolute inset-x-0 bottom-0 p-5">
