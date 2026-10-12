@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from './AuthProvider';
+import { NavPendingBadge } from './WaitingRoomProvider';
 
 const publicLinks = [
   { href: '/travel', label: 'Travel' },
@@ -43,17 +44,16 @@ export function SiteHeader() {
             </Link>
           ))}
           {signedIn &&
-            privateLinks
-              .filter((link) => link.href !== '/home')
-              .map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={pathname.startsWith(link.href) ? 'text-[var(--oxblood)]' : 'text-[var(--espresso-soft)] hover:text-[var(--espresso)]'}
-                >
-                  {link.label}
-                </Link>
-              ))}
+            privateLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`relative ${pathname.startsWith(link.href) ? 'text-[var(--oxblood)]' : 'text-[var(--espresso-soft)] hover:text-[var(--espresso)]'}`}
+              >
+                {link.label}
+                <NavPendingBadge href={link.href} />
+              </Link>
+            ))}
         </nav>
 
         <div className="flex items-center gap-5 text-[0.78rem] uppercase tracking-[0.16em]">
@@ -96,11 +96,11 @@ export function MobileNav() {
   if (!session) return null;
 
   const items = [
-    { href: '/home', label: 'Home' },
-    { href: '/calendar', label: 'Dates' },
-    { href: '/travel', label: 'Travel' },
-    { href: '/together', label: 'Time' },
-    { href: '/connect', label: 'Partner' },
+    { href: '/home', label: 'Home', badge: true },
+    { href: '/calendar', label: 'Dates', badge: true },
+    { href: '/travel', label: 'Travel', badge: false },
+    { href: '/together', label: 'Time', badge: false },
+    { href: '/connect', label: 'Partner', badge: true },
   ];
 
   return (
@@ -110,9 +110,10 @@ export function MobileNav() {
           <li key={item.href}>
             <Link
               href={item.href}
-              className={`block py-3 ${pathname.startsWith(item.href) ? 'text-[var(--oxblood)]' : 'text-[var(--stone-dark)]'}`}
+              className={`relative block py-3 ${pathname.startsWith(item.href) ? 'text-[var(--oxblood)]' : 'text-[var(--stone-dark)]'}`}
             >
               {item.label}
+              {item.badge && <NavPendingBadge href={item.href} />}
             </Link>
           </li>
         ))}

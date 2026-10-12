@@ -1,21 +1,24 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { EnvelopeCard } from '@/components/Letter';
+import { WaitingRoom } from '@/components/WaitingRoom';
 import { Button, EmptyState, Kicker, RoomGate } from '@/components/ui';
 import { api } from '@/lib/api';
 import { clearPendingPlan, readPendingPlan } from '@/lib/pending';
 import { formatWindow } from '@/lib/availability';
-import { nextEnvelopeOccasion } from '@/lib/occasions';
-import { Connection, FreeWindow, Invitation, Visit } from '@/types';
+import { getOccasion } from '@/lib/occasions';
+import { buildWaitingRoom } from '@/lib/waiting-room';
+import { Connection, CoupleDate, FreeWindow, Invitation, Visit } from '@/types';
 
 export default function HomePage() {
   const { session, profile, loading, signOut } = useAuth();
   const [connections, setConnections] = useState<Connection[]>([]);
   const [visits, setVisits] = useState<Visit[]>([]);
   const [invites, setInvites] = useState<Invitation[]>([]);
+  const [upcomingDates, setUpcomingDates] = useState<CoupleDate[]>([]);
   const [windows, setWindows] = useState<FreeWindow[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [notice, setNotice] = useState('');
@@ -23,28 +26,42 @@ export default function HomePage() {
   const accepted = connections.filter((c) => c.status === 'accepted' && c.partner);
   const pendingIn = connections.filter((c) => c.status === 'pending');
   const partner = accepted[0]?.partner;
+
+  const waitingState = useMemo(
+    () =>
+      buildWaitingRoom({
+        profileId: profile?.id,
+        partner,
+        connections,
+        visits,
+        invitations: invites,
+        upcomingDates,
+      }),
+    [profile?.id, partner, connections, visits, invites, upcomingDates]
+  );
+
   const nextVisit = visits
-    .filter((v) => v.status !== 'proposed' || true)
     .sort((a, b) => a.start_date.localeCompare(b.start_date))
     .find((v) => v.start_date >= new Date().toISOString().slice(0, 10)) || visits[0];
-  const openLetter = invites.find((i) => i.status === 'sent' && i.to_user_id !== undefined) 
-    || invites.find((i) => i.status === 'sent');
   const incomingLetter = invites.find((i) => i.status === 'sent' && i.from_user_id !== profile?.id);
-  const season = nextEnvelopeOccasion();
+  const seasonItem = waitingState.items.find((i) => i.kind === 'occasion-live' && i.occasionSlug);
 
   useEffect(() => {
     if (!session || loading) return;
 
     const load = async () => {
       try {
-        const [conns, vs, letters] = await Promise.all([
+        const now = new Date();
+        const [conns, vs, letters, datesData] = await Promise.all([
           api.getConnections().catch(() => []),
           api.getVisits().catch(() => []),
           api.getInvitations().catch(() => []),
+          api.getCoupleDates(now.getFullYear(), now.getMonth() + 1).catch(() => ({ upcoming: [] })),
         ]);
         setConnections(conns);
         setVisits(vs);
         setInvites(letters);
+        setUpcomingDates((datesData as { upcoming?: CoupleDate[] }).upcoming || []);
 
         const first = (conns as Connection[]).find((c) => c.status === 'accepted' && c.partner);
         if (first?.partner?.id) {
@@ -102,6 +119,10 @@ export default function HomePage() {
       </div>
       {notice && <p className="mt-4 text-sm text-[var(--live)]">{notice}</p>}
 
+      <div className="mt-10">
+        <WaitingRoom state={waitingState} />
+      </div>
+
       <div className="mt-12 grid gap-6 lg:grid-cols-3">
         <section className="border border-[var(--line)] bg-[var(--paper)] p-6 lg:col-span-2">
           <Kicker>The visit</Kicker>
@@ -113,10 +134,13 @@ export default function HomePage() {
                 {nextVisit.partner?.name ? ` · with ${nextVisit.partner.name}` : ''}
               </p>
               <div className="mt-6 flex gap-4">
-                {nextVisit.status === 'proposed' && (
+                {nextVisit.status === 'proposed' && nextVisit.user1_id !== profile?.id && (
                   <Button onClick={() => api.updateVisit(nextVisit.id, { status: 'accepted' }).then(() => refreshVisits(setVisits))}>
                     Accept
                   </Button>
+                )}
+                {nextVisit.status === 'proposed' && nextVisit.user1_id === profile?.id && (
+                  <p className="text-sm text-[var(--stone-dark)]">Waiting for their yes.</p>
                 )}
                 {nextVisit.status === 'accepted' && (
                   <Button onClick={() => api.updateVisit(nextVisit.id, { status: 'booked' }).then(() => refreshVisits(setVisits))}>
@@ -147,18 +171,24 @@ export default function HomePage() {
 
         <section>
           {incomingLetter?.occasion ? (
-            <Link href="/letters">
-              <EnvelopeCard occasion={incomingLetter.occasion} />
-              <p className="mt-3 text-[0.72rem] uppercase tracking-[0.16em] text-[var(--oxblood)]">A letter waiting</p>
+            <Link href="/letters" className="block">
+              <EnvelopeCard occasion={incomingLetter.occasion} glow />
+              <p className="waiting-pulse-dot mt-3 inline-flex items-center gap-2 text-[0.72rem] uppercase tracking-[0.16em] text-[var(--oxblood)]">
+                <span className="pulse-dot pulse-dot-sm" aria-hidden />
+                A letter waiting
+              </p>
             </Link>
-          ) : season ? (
-            <Link href={`/occasions/${season.slug}`}>
-              <EnvelopeCard occasion={season} date={season.date} days={season.days} />
-              <p className="mt-3 text-[0.72rem] uppercase tracking-[0.16em] text-[var(--stone-dark)]">Coming up · send it early</p>
-            </Link>
-          ) : openLetter?.occasion ? (
-            <Link href="/letters">
-              <EnvelopeCard occasion={openLetter.occasion} />
+          ) : seasonItem?.occasionSlug && getOccasion(seasonItem.occasionSlug) ? (
+            <Link href={seasonItem.href} className="block">
+              <EnvelopeCard
+                occasion={getOccasion(seasonItem.occasionSlug)!}
+                days={seasonItem.daysUntil}
+                glow={seasonItem.glow}
+              />
+              <p className={`mt-3 text-[0.72rem] uppercase tracking-[0.16em] ${seasonItem.glow ? 'waiting-pulse-dot inline-flex items-center gap-2 text-[var(--oxblood)]' : 'text-[var(--stone-dark)]'}`}>
+                {seasonItem.glow && <span className="pulse-dot pulse-dot-sm" aria-hidden />}
+                {seasonItem.glow ? 'Coming up · send it early' : 'On the horizon'}
+              </p>
             </Link>
           ) : (
             <Link href="/occasions" className="block border border-[var(--line)] p-6">
@@ -170,7 +200,7 @@ export default function HomePage() {
         </section>
       </div>
 
-      <UpcomingDates partnerId={partner?.id} />
+      <UpcomingDates partnerId={partner?.id} items={upcomingDates} />
 
       <section className="mt-10 grid gap-6 md:grid-cols-2">
         <div className="border border-[var(--line)] p-6">
@@ -202,6 +232,11 @@ export default function HomePage() {
               <p className="font-display mt-4 text-3xl">{partner.name || partner.email}</p>
               <p className="mt-2 text-sm text-[var(--stone-dark)]">
                 {[partner.university_name, partner.location_city].filter(Boolean).join(' · ')}
+              </p>
+              <p className="mt-4 text-sm leading-relaxed text-[var(--espresso-soft)]">
+                {waitingState.glowCount > 0
+                  ? 'Something is waiting between you. It is a good kind of waiting.'
+                  : 'Quiet for now. That is alright too.'}
               </p>
               <Link
                 href={`/travel?partner=${partner.id}`}
@@ -262,18 +297,14 @@ function ProposeVisit({ partnerId, onCreated }: { partnerId: string; onCreated: 
   );
 }
 
-function UpcomingDates({ partnerId }: { partnerId?: string }) {
-  const [items, setItems] = useState<{ id: string; title: string; date: string; kind: string }[]>([]);
-
-  useEffect(() => {
-    const now = new Date();
-    api
-      .getCoupleDates(now.getFullYear(), now.getMonth() + 1)
-      .then((data: { upcoming?: { id: string; title: string; date: string; kind: string }[] }) => {
-        setItems((data.upcoming || []).slice(0, 4));
-      })
-      .catch(() => setItems([]));
-  }, []);
+function UpcomingDates({
+  partnerId,
+  items: initialItems,
+}: {
+  partnerId?: string;
+  items: CoupleDate[];
+}) {
+  const items = initialItems.slice(0, 4);
 
   return (
     <section className="mt-10 border border-[var(--line)] bg-[var(--paper)] p-6 reveal">
@@ -292,20 +323,29 @@ function UpcomingDates({ partnerId }: { partnerId?: string }) {
         </p>
       ) : (
         <ul className="mt-5 divide-y divide-[var(--line)]">
-          {items.map((item) => (
-            <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-              <div>
-                <p className="text-[0.65rem] uppercase tracking-[0.14em] text-[var(--stone-dark)]">{item.date}</p>
-                <p className="font-display text-xl">{item.title}</p>
-              </div>
-              <Link
-                href={`/travel?date=${item.date}${partnerId ? `&partner=${partnerId}` : ''}`}
-                className="text-[0.68rem] uppercase tracking-[0.14em] text-[var(--espresso-soft)] hover:text-[var(--oxblood)]"
-              >
-                Cheapest trip
-              </Link>
-            </li>
-          ))}
+          {items.map((item) => {
+            const days = Math.ceil(
+              (new Date(`${item.date}T12:00:00`).getTime() - Date.now()) / 86400000
+            );
+            const soon = days >= 0 && days <= 14;
+            return (
+              <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                <div className="flex items-center gap-3">
+                  {soon && <span className="pulse-dot pulse-dot-sm shrink-0" aria-hidden />}
+                  <div>
+                    <p className="text-[0.65rem] uppercase tracking-[0.14em] text-[var(--stone-dark)]">{item.date}</p>
+                    <p className="font-display text-xl">{item.title}</p>
+                  </div>
+                </div>
+                <Link
+                  href={`/travel?date=${item.date}${partnerId ? `&partner=${partnerId}` : ''}`}
+                  className="text-[0.68rem] uppercase tracking-[0.14em] text-[var(--espresso-soft)] hover:text-[var(--oxblood)]"
+                >
+                  Cheapest trip
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>
@@ -322,8 +362,12 @@ function IncomingRequests({
   return (
     <div className="mt-4 space-y-4">
       {items.map((item) => (
-        <div key={item.id} className="border border-[var(--line)] p-4">
-          <p className="font-display text-2xl">{item.partner?.name || 'Someone'}</p>
+        <div key={item.id} className="waiting-card-glow border border-[var(--oxblood)]/25 p-4">
+          <p className="waiting-pulse-dot inline-flex items-center gap-2 text-[0.62rem] uppercase tracking-[0.16em] text-[var(--oxblood)]">
+            <span className="pulse-dot pulse-dot-sm" aria-hidden />
+            Waiting at the door
+          </p>
+          <p className="font-display mt-2 text-2xl">{item.partner?.name || 'Someone'}</p>
           <p className="text-sm text-[var(--stone-dark)]">{item.partner?.university_name}</p>
           <div className="mt-3 flex gap-4">
             <button
