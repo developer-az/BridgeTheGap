@@ -93,5 +93,5 @@ if ($openRouterKey -eq "YOUR_OPENROUTER_KEY_HERE") {
     Write-Host "3. Your OpenRouter API key is already configured! ✅"
 }
 Write-Host ""
-Write-Host "🚀 Then run: .\start-app.ps1" -ForegroundColor Green
+Write-Host "🚀 Then run: .\scripts\start-app.ps1" -ForegroundColor Green
 

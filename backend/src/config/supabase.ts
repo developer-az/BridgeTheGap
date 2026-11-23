@@ -6,7 +6,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 if (!supabaseUrl || !supabaseServiceKey) {
   console.warn('⚠️  Supabase credentials not configured. Database features will not work.');
   console.warn('📝 To fix: Add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to backend/.env');
-  console.warn('📖 See SETUP_GUIDE.md for instructions\n');
+  console.warn('📖 See docs/notes/SETUP_GUIDE.md for instructions\n');
 }
 
 // Create a mock client if credentials are missing (allows server to start)
